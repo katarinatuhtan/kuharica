@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Pošalji nam pitanje ili svoj recept.">
+  <title>Kontakt | Kuharica</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍲</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-stranica="kontakt">
+  <header class="zaglavlje">
+    <div class="omotac zaglavlje-sadrzaj">
+      <a href="index.html" class="logo"><span class="logo-ikona">🍲</span><span class="logo-tekst">Kuharica</span></a>
+      <nav class="navigacija" id="navigacija" aria-label="Glavna navigacija">
+        <a href="index.html">Početna</a>
+        <a href="recepti.html">Recepti</a>
+        <a href="planer.html">Planer obroka</a>
+        <a href="kontakt.html" class="aktivno" aria-current="page">Kontakt</a>
+      </nav>
+      <div class="zaglavlje-akcije">
+        <button class="gumb-ikona" id="tema-gumb" aria-label="Promijeni temu">🌙</button>
+        <button class="gumb-ikona izbornik-gumb" id="izbornik-gumb" aria-label="Izbornik" aria-expanded="false" aria-controls="navigacija">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="omotac">
+      <div class="naslov-stranice">
+        <h1>Kontakt</h1>
+        <p class="podnaslov">Imaš pitanje, prijedlog ili recept koji želiš podijeliti? Javi nam se.</p>
+      </div>
+
+      <div class="kontakt-raspored">
+        <section class="blok">
+          <form id="kontakt-forma" novalidate>
+            <div class="polje">
+              <label for="ime">Ime</label>
+              <input type="text" id="ime" autocomplete="name">
+              <small class="greska" aria-live="polite"></small>
+            </div>
+            <div class="polje">
+              <label for="email">E-mail</label>
+              <input type="email" id="email" autocomplete="email">
+              <small class="greska" aria-live="polite"></small>
+            </div>
+            <div class="polje">
+              <label for="tema">Tema</label>
+              <select id="tema">
+                <option value="">Odaberi…</option>
+                <option value="pitanje">Pitanje o receptu</option>
+                <option value="recept">Želim poslati svoj recept</option>
+                <option value="prijedlog">Prijedlog ili pohvala</option>
+                <option value="ostalo">Ostalo</option>
+              </select>
+              <small class="greska" aria-live="polite"></small>
+            </div>
+            <div class="polje" id="polje-recept" hidden>
+              <label for="naziv-recepta">Naziv recepta</label>
+              <input type="text" id="naziv-recepta" placeholder="npr. Bakine fritule">
+              <small class="greska" aria-live="polite"></small>
+            </div>
+            <div class="polje">
+              <label for="poruka">Poruka</label>
+              <textarea id="poruka" maxlength="500" placeholder="Napiši poruku…"></textarea>
+              <span class="broj-znakova" id="broj-znakova">0 / 500</span>
+              <small class="greska" aria-live="polite"></small>
+            </div>
+            <div class="polje">
+              <label class="potvrdni"><input type="checkbox" id="privola"> Slažem se da se moji podaci koriste za odgovor na poruku.</label>
+              <small class="greska" aria-live="polite"></small>
+            </div>
+            <button type="submit" class="gumb gumb-primarni">Pošalji poruku</button>
+          </form>
+
+          <div class="uspjeh" id="uspjeh" hidden>
+            <p class="uspjeh-emoji">✅</p>
+            <h2>Hvala, <span id="uspjeh-ime"></span>!</h2>
+            <p>Tvoja poruka je zaprimljena. Javit ćemo ti se uskoro.</p>
+            <button class="gumb" id="nova-poruka" type="button">Pošalji novu poruku</button>
+          </div>
+        </section>
+
+        <aside>
+          <div class="blok">
+            <h2>Gdje smo</h2>
+            <div class="info-stavka"><span>📍</span><p>Rijeka, Hrvatska</p></div>
+            <div class="info-stavka"><span>✉️</span><p>kuharica@primjer.hr</p></div>
+            <div class="info-stavka"><span>💬</span><p>Za brza pitanja o receptima pitaj Kuhar Bota u donjem desnom kutu.</p></div>
+          </div>
+
+          <div class="pitanja">
+            <h2>Česta pitanja</h2>
+            <div class="pitanje">
+              <button class="pitanje-gumb" aria-expanded="false" aria-controls="odg1">Gdje se spremaju moji favoriti i planer?</button>
+              <div class="odgovor" id="odg1" hidden><p>Lokalno u tvom pregledniku (localStorage). Ostaju spremljeni i kad zatvoriš stranicu, ali samo na tom uređaju.</p></div>
+            </div>
+            <div class="pitanje">
+              <button class="pitanje-gumb" aria-expanded="false" aria-controls="odg2">Mogu li promijeniti broj porcija?</button>
+              <div class="odgovor" id="odg2" hidden><p>Da. Na stranici recepta upiši broj porcija ili koristi gumbe + i −, a količine sastojaka preračunat će se same.</p></div>
+            </div>
+            <div class="pitanje">
+              <button class="pitanje-gumb" aria-expanded="false" aria-controls="odg3">Kako mogu poslati svoj recept?</button>
+              <div class="odgovor" id="odg3" hidden><p>U obrascu odaberi temu „Želim poslati svoj recept“, upiši naziv i opiši recept u poruci.</p></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="podnozje">
+    <div class="omotac podnozje-sadrzaj">
+      <p>© 2026 Kuharica · Projekt iz kolegija Tehnologije interaktivnog weba</p>
+      <nav aria-label="Navigacija u podnožju"><a href="index.html">Početna</a> <a href="recepti.html">Recepti</a> <a href="planer.html">Planer obroka</a> <a href="kontakt.html">Kontakt</a></nav>
+    </div>
+  </footer>
+
+  <script src="js/podaci.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/chatbot.js"></script>
+</body>
+</html>

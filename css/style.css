@@ -1,0 +1,1653 @@
+/* =========================================================
+   KUHARICA – STILOVI
+   ========================================================= */
+
+/* ---------- Varijable i teme ---------- */
+:root {
+  --pozadina: #fbf7f2;
+  --povrsina: #ffffff;
+  --povrsina-2: #f4ece2;
+  --tekst: #2b2420;
+  --tekst-blagi: #6f625a;
+  --naglasak: #c8553d;
+  --naglasak-tamni: #a8432e;
+  --naglasak-svijetli: #f8e1d9;
+  --zelena: #5d7a32;
+  --rub: #e8ddd0;
+  --sjena: 0 2px 6px rgba(60, 40, 20, 0.06), 0 8px 24px rgba(60, 40, 20, 0.08);
+  --radijus: 16px;
+  --font-naslov: Georgia, "Times New Roman", serif;
+  --font-tekst: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --sirina: 1160px;
+  color-scheme: light;
+}
+
+[data-tema="tamna"] {
+  --pozadina: #1c1917;
+  --povrsina: #282320;
+  --povrsina-2: #332c28;
+  --tekst: #f3ece6;
+  --tekst-blagi: #b5a89f;
+  --naglasak: #e8765c;
+  --naglasak-tamni: #f08f78;
+  --naglasak-svijetli: #4a2e26;
+  --zelena: #9bbd6a;
+  --rub: #3d3531;
+  --sjena: 0 2px 6px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+  color-scheme: dark;
+}
+
+/* ---------- Osnove ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-tekst);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--tekst);
+  background: var(--pozadina);
+  transition: background-color 0.3s, color 0.3s;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-naslov);
+  line-height: 1.2;
+  margin: 0 0 0.5em;
+}
+
+h1 {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+}
+
+h2 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+a {
+  color: var(--naglasak);
+}
+
+img {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--naglasak);
+  outline-offset: 2px;
+}
+
+.omotac {
+  width: min(100% - 2.5rem, var(--sirina));
+  margin-inline: auto;
+}
+
+.sekcija {
+  padding: 3.5rem 0;
+}
+
+.sekcija-zaglavlje {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.sekcija-zaglavlje h2 {
+  margin: 0;
+}
+
+.podnaslov {
+  color: var(--tekst-blagi);
+  margin: 0.25rem 0 0;
+}
+
+.vizualno-skriveno {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- Gumbi ---------- */
+.gumb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1.2rem;
+  border-radius: 999px;
+  border: 2px solid var(--rub);
+  background: var(--povrsina);
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--tekst);
+  cursor: pointer;
+  transition: transform 0.15s, background-color 0.2s, border-color 0.2s;
+}
+
+.gumb:hover {
+  transform: translateY(-1px);
+  border-color: var(--naglasak);
+}
+
+.gumb-primarni {
+  background: var(--naglasak);
+  border-color: var(--naglasak);
+  color: #fff;
+}
+
+.gumb-primarni:hover {
+  background: var(--naglasak-tamni);
+  border-color: var(--naglasak-tamni);
+}
+
+[data-tema="tamna"] .gumb-primarni {
+  color: #1c1917;
+}
+
+.gumb-ikona {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid var(--rub);
+  background: var(--povrsina);
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: inline-grid;
+  place-items: center;
+  transition: background-color 0.2s;
+}
+
+.gumb-ikona:hover {
+  background: var(--povrsina-2);
+}
+
+/* ---------- Zaglavlje i navigacija ---------- */
+.zaglavlje {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in srgb, var(--pozadina) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--rub);
+}
+
+.zaglavlje-sadrzaj {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  height: 4.25rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-naslov);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--tekst);
+  text-decoration: none;
+}
+
+.logo-ikona {
+  font-size: 1.7rem;
+}
+
+.navigacija {
+  display: flex;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+.navigacija a {
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  text-decoration: none;
+  color: var(--tekst);
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.navigacija a:hover {
+  background: var(--povrsina-2);
+}
+
+.navigacija a.aktivno {
+  background: var(--naglasak-svijetli);
+  color: var(--naglasak);
+  font-weight: 700;
+}
+
+.zaglavlje-akcije {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.izbornik-gumb {
+  display: none;
+}
+
+/* ---------- Hero (početna) ---------- */
+.hero {
+  padding: 4rem 0 3rem;
+  background:
+    radial-gradient(circle at 85% 20%, var(--naglasak-svijetli), transparent 45%),
+    radial-gradient(circle at 10% 90%, color-mix(in srgb, var(--zelena) 18%, transparent), transparent 40%);
+}
+
+.hero-sadrzaj {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+
+.hero p {
+  font-size: 1.15rem;
+  color: var(--tekst-blagi);
+  max-width: 34rem;
+}
+
+.hero-pretraga {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.5rem 0 1rem;
+  max-width: 34rem;
+}
+
+.hero-pretraga input {
+  flex: 1;
+  min-width: 0;
+}
+
+.hero-oznake {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.hero-oznake a {
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  background: var(--povrsina);
+  border: 1px solid var(--rub);
+  font-size: 0.9rem;
+  text-decoration: none;
+  color: var(--tekst);
+}
+
+.hero-oznake a:hover {
+  border-color: var(--naglasak);
+}
+
+.hero-ilustracija {
+  font-size: clamp(5rem, 14vw, 9rem);
+  text-align: center;
+  line-height: 1;
+  filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.12));
+  user-select: none;
+}
+
+.hero-ilustracija span {
+  display: inline-block;
+  animation: lebdi 4s ease-in-out infinite;
+}
+
+.hero-ilustracija span:nth-child(2) {
+  animation-delay: 0.6s;
+}
+
+.hero-ilustracija span:nth-child(3) {
+  animation-delay: 1.2s;
+}
+
+@keyframes lebdi {
+  50% {
+    transform: translateY(-10px) rotate(-4deg);
+  }
+}
+
+/* ---------- Polja obrasca ---------- */
+input[type="text"],
+input[type="email"],
+input[type="search"],
+input[type="number"],
+select,
+textarea {
+  padding: 0.7rem 1rem;
+  border-radius: 12px;
+  border: 2px solid var(--rub);
+  background: var(--povrsina);
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--naglasak);
+  outline: none;
+}
+
+/* ---------- Recept dana ---------- */
+.istaknuto {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  background: var(--povrsina);
+  border-radius: var(--radijus);
+  overflow: hidden;
+  box-shadow: var(--sjena);
+}
+
+.istaknuto.animacija {
+  animation: pojavi 0.45s ease;
+}
+
+@keyframes pojavi {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.istaknuto-slika {
+  background: var(--boja);
+  display: grid;
+  place-items: center;
+  font-size: 7rem;
+  min-height: 240px;
+}
+
+.istaknuto-tekst {
+  padding: 2rem;
+}
+
+.istaknuto-tekst h3 {
+  font-size: 1.9rem;
+}
+
+.istaknuto-tekst .meta {
+  margin: 1rem 0 1.5rem;
+}
+
+/* ---------- Kategorije ---------- */
+.kategorije {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+
+.kategorija {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 1.5rem 1rem;
+  border-radius: var(--radijus);
+  background: var(--boja);
+  color: #2b2420;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.kategorija:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--sjena);
+}
+
+.kategorija-emoji {
+  font-size: 2.6rem;
+}
+
+.kategorija small {
+  opacity: 0.75;
+}
+
+[data-tema="tamna"] .kategorija,
+[data-tema="tamna"] .kartica-slika,
+[data-tema="tamna"] .istaknuto-slika,
+[data-tema="tamna"] .recept-emoji {
+  background: color-mix(in srgb, var(--boja) 35%, #282320);
+  color: var(--tekst);
+}
+
+/* ---------- Kartice recepata ---------- */
+.mreza {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+.kartica {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--povrsina);
+  border-radius: var(--radijus);
+  overflow: hidden;
+  box-shadow: var(--sjena);
+  transition: transform 0.2s;
+}
+
+.kartica:hover {
+  transform: translateY(-4px);
+}
+
+.kartica-slika {
+  display: grid;
+  place-items: center;
+  height: 160px;
+  background: var(--boja);
+  font-size: 4.5rem;
+  text-decoration: none;
+}
+
+.kartica-slika {
+  overflow: hidden;
+}
+
+.kartica-slika span {
+  transition: transform 0.3s;
+}
+
+.kartica:hover .kartica-slika span {
+  transform: scale(1.12) rotate(-6deg);
+}
+
+/* fotografije jela ispunjavaju svoj okvir */
+.kartica-slika:has(img),
+.istaknuto-slika:has(img),
+.recept-emoji:has(img) {
+  position: relative;
+}
+
+.kartica-slika img,
+.istaknuto-slika img,
+.recept-emoji img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.kartica:hover .kartica-slika img {
+  transform: scale(1.06);
+}
+
+.kartica-slika {
+  height: 190px;
+}
+
+.istaknuto-slika,
+.recept-emoji {
+  overflow: hidden;
+}
+
+.istaknuto-slika:has(img) {
+  min-height: 300px;
+}
+
+.kartica-tijelo {
+  padding: 1.1rem 1.25rem 1.25rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.kartica-tijelo h3 {
+  font-size: 1.25rem;
+  margin: 0.4rem 0;
+}
+
+.kartica-tijelo h3 a {
+  color: var(--tekst);
+  text-decoration: none;
+}
+
+.kartica-tijelo h3 a:hover {
+  color: var(--naglasak);
+}
+
+.kartica-tijelo p {
+  color: var(--tekst-blagi);
+  font-size: 0.95rem;
+  margin: 0 0 0.75rem;
+  flex: 1;
+}
+
+.kartica-nutri {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 0.5rem 1rem;
+  background: rgba(30, 20, 15, 0.82);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  transform: translateY(-100%);
+  transition: transform 0.25s;
+}
+
+.kartica.prikazi-nutri .kartica-nutri {
+  transform: translateY(0);
+}
+
+.oznaka {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 0.15rem 0.65rem;
+  border-radius: 999px;
+  background: var(--naglasak-svijetli);
+  color: var(--naglasak);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  font-size: 0.88rem;
+  color: var(--tekst-blagi);
+}
+
+.srce {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 2;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--naglasak);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: transform 0.15s;
+}
+
+.srce:hover {
+  transform: scale(1.12);
+}
+
+.srce.aktivno {
+  animation: puls 0.35s ease;
+}
+
+@keyframes puls {
+  50% {
+    transform: scale(1.3);
+  }
+}
+
+/* ---------- Poziv na chat (početna) ---------- */
+.chat-poziv {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding: 2rem 2.5rem;
+  border-radius: var(--radijus);
+  background: linear-gradient(120deg, var(--naglasak), #e0864a);
+  color: #fff;
+}
+
+.chat-poziv h2 {
+  margin-bottom: 0.25rem;
+}
+
+.chat-poziv p {
+  margin: 0;
+  opacity: 0.92;
+}
+
+.chat-poziv .gumb {
+  background: #fff;
+  color: #a8432e;
+  border-color: #fff;
+}
+
+/* ---------- Stranica recepata: filteri ---------- */
+.naslov-stranice {
+  padding: 2.5rem 0 1rem;
+}
+
+.filteri {
+  display: grid;
+  grid-template-columns: 2fr repeat(3, 1fr);
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background: var(--povrsina);
+  border-radius: var(--radijus);
+  box-shadow: var(--sjena);
+}
+
+.filteri label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--tekst-blagi);
+  margin-bottom: 0.25rem;
+}
+
+.filteri-red {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+}
+
+.potvrdni {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.95rem !important;
+  color: var(--tekst) !important;
+  cursor: pointer;
+  margin: 0 !important;
+}
+
+.potvrdni input {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--naglasak);
+}
+
+.filteri-red .gumb {
+  margin-left: auto;
+  padding: 0.4rem 1rem;
+}
+
+.brojac {
+  margin: 1.5rem 0 1rem;
+  color: var(--tekst-blagi);
+  font-weight: 600;
+}
+
+.prazno {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.prazno-emoji {
+  font-size: 4rem;
+  margin: 0;
+}
+
+/* ---------- Pojedinačni recept ---------- */
+.mrvice {
+  padding: 1.5rem 0;
+  font-size: 0.9rem;
+  color: var(--tekst-blagi);
+}
+
+.mrvice a {
+  color: var(--tekst-blagi);
+}
+
+.recept-zaglavlje {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+.recept-emoji {
+  aspect-ratio: 4 / 3;
+  border-radius: 24px;
+  background: var(--boja);
+  display: grid;
+  place-items: center;
+  font-size: 8rem;
+  box-shadow: var(--sjena);
+}
+
+.recept-opis {
+  font-size: 1.15rem;
+  color: var(--tekst-blagi);
+}
+
+.recept-meta {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.recept-meta li {
+  padding: 0.4rem 0.9rem;
+  background: var(--povrsina);
+  border: 1px solid var(--rub);
+  border-radius: 999px;
+  font-size: 0.92rem;
+}
+
+.recept-meta small {
+  color: var(--tekst-blagi);
+}
+
+.recept-akcije {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.srce-veliko {
+  position: static;
+  width: auto;
+  height: auto;
+  border-radius: 999px;
+  font-size: 1rem;
+  padding: 0.65rem 1.2rem;
+  box-shadow: none;
+  border: 2px solid var(--rub);
+  background: var(--povrsina);
+}
+
+.srce-veliko.aktivno {
+  background: var(--naglasak-svijetli);
+  border-color: var(--naglasak);
+}
+
+.dodaj-planer {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.dodaj-planer select {
+  width: auto;
+  border-radius: 999px;
+}
+
+.recept-tijelo {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 2rem;
+  margin: 3rem 0 1rem;
+  align-items: start;
+}
+
+.blok {
+  background: var(--povrsina);
+  border-radius: var(--radijus);
+  padding: 1.75rem;
+  box-shadow: var(--sjena);
+}
+
+.porcije {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.porcije input {
+  width: 4.5rem;
+  text-align: center;
+  padding: 0.45rem;
+}
+
+.sastojci-popis {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sastojci-popis li {
+  padding: 0.6rem 0.25rem;
+  border-bottom: 1px dashed var(--rub);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.sastojci-popis li::before {
+  content: "○ ";
+  color: var(--naglasak);
+}
+
+.sastojci-popis li.oznaceno {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.sastojci-popis li.oznaceno::before {
+  content: "● ";
+}
+
+.kolicina {
+  font-weight: 700;
+  color: var(--naglasak);
+}
+
+.postupak {
+  counter-reset: korak;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.postupak li {
+  counter-increment: korak;
+  position: relative;
+  padding: 0.9rem 0.75rem 0.9rem 3.25rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s, opacity 0.2s;
+}
+
+.postupak li:hover {
+  background: var(--povrsina-2);
+}
+
+.postupak li::before {
+  content: counter(korak);
+  position: absolute;
+  left: 0.6rem;
+  top: 0.8rem;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  background: var(--naglasak);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.postupak li.gotovo {
+  opacity: 0.5;
+}
+
+.postupak li.gotovo::before {
+  content: "✓";
+  background: var(--zelena);
+}
+
+.napredak {
+  height: 8px;
+  background: var(--povrsina-2);
+  border-radius: 999px;
+  margin-top: 1rem;
+  overflow: hidden;
+}
+
+.napredak-traka {
+  height: 100%;
+  width: 0;
+  background: var(--zelena);
+  transition: width 0.4s ease;
+}
+
+.savjet {
+  font-size: 0.88rem;
+  color: var(--tekst-blagi);
+  margin: 0.75rem 0 0;
+}
+
+/* ---------- Planer ---------- */
+.planer-forma {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: end;
+  padding: 1.25rem;
+  background: var(--povrsina);
+  border-radius: var(--radijus);
+  box-shadow: var(--sjena);
+  margin-bottom: 2rem;
+}
+
+.planer-forma > div {
+  flex: 1 1 200px;
+}
+
+.planer-forma label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--tekst-blagi);
+  margin-bottom: 0.25rem;
+}
+
+.planer-raspored {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 2rem;
+  align-items: start;
+}
+
+.tjedan {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.dan {
+  background: var(--povrsina);
+  border-radius: var(--radijus);
+  padding: 1rem;
+  box-shadow: var(--sjena);
+  min-height: 120px;
+}
+
+.dan h3 {
+  font-size: 1.05rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--naglasak-svijetli);
+}
+
+.dan ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dan li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  font-size: 0.92rem;
+}
+
+.dan li a {
+  color: var(--tekst);
+  text-decoration: none;
+}
+
+.dan li a:hover {
+  color: var(--naglasak);
+}
+
+.ukloni {
+  flex-shrink: 0;
+  border: none;
+  background: var(--povrsina-2);
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.ukloni:hover {
+  background: var(--naglasak);
+  color: #fff;
+}
+
+.dan-prazno {
+  color: var(--tekst-blagi);
+  font-size: 0.88rem;
+  font-style: italic;
+  margin: 0;
+}
+
+.kupnja {
+  position: sticky;
+  top: 5.5rem;
+}
+
+.kupnja h2 {
+  font-size: 1.4rem;
+}
+
+.popis-kupnje {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.popis-kupnje li {
+  padding: 0.35rem 0;
+  border-bottom: 1px dashed var(--rub);
+}
+
+.popis-kupnje label {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  cursor: pointer;
+}
+
+.popis-kupnje input {
+  accent-color: var(--zelena);
+}
+
+.popis-kupnje li.kupljeno span {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+/* ---------- Kontakt ---------- */
+.kontakt-raspored {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.polje {
+  margin-bottom: 1.1rem;
+}
+
+.polje > label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.polje textarea {
+  resize: vertical;
+  min-height: 140px;
+}
+
+.neispravno {
+  border-color: #d03b3b !important;
+}
+
+.greska {
+  display: block;
+  color: #d03b3b;
+  font-size: 0.85rem;
+  min-height: 1.1em;
+  margin-top: 0.2rem;
+}
+
+[data-tema="tamna"] .greska {
+  color: #ff8a80;
+}
+
+.broj-znakova {
+  display: block;
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--tekst-blagi);
+}
+
+.broj-znakova.upozorenje {
+  color: var(--naglasak);
+  font-weight: 700;
+}
+
+.uspjeh {
+  text-align: center;
+  padding: 2rem 1rem;
+  animation: pojavi 0.4s ease;
+}
+
+.uspjeh-emoji {
+  font-size: 4rem;
+  margin: 0;
+}
+
+.info-stavka {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.info-stavka span:first-child {
+  font-size: 1.4rem;
+}
+
+.info-stavka p {
+  margin: 0;
+}
+
+.pitanja {
+  margin-top: 1.5rem;
+}
+
+.pitanje {
+  border-bottom: 1px solid var(--rub);
+}
+
+.pitanje-gumb {
+  width: 100%;
+  text-align: left;
+  padding: 0.9rem 0;
+  background: none;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pitanje-gumb::after {
+  content: "+";
+  font-size: 1.3rem;
+  line-height: 1;
+  color: var(--naglasak);
+  transition: transform 0.2s;
+}
+
+.pitanje-gumb[aria-expanded="true"]::after {
+  transform: rotate(45deg);
+}
+
+.odgovor {
+  padding-bottom: 1rem;
+  color: var(--tekst-blagi);
+}
+
+.odgovor p {
+  margin: 0;
+}
+
+/* ---------- Podnožje ---------- */
+.podnozje {
+  margin-top: 3rem;
+  padding: 2rem 0 5.5rem;
+  border-top: 1px solid var(--rub);
+  color: var(--tekst-blagi);
+  font-size: 0.9rem;
+}
+
+.podnozje-sadrzaj {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.podnozje nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.podnozje a {
+  color: var(--tekst-blagi);
+}
+
+/* ---------- Obavijesti (toast) ---------- */
+.obavijesti {
+  position: fixed;
+  left: 50%;
+  bottom: 1.5rem;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  pointer-events: none;
+}
+
+.obavijest {
+  background: var(--tekst);
+  color: var(--pozadina);
+  padding: 0.7rem 1.3rem;
+  border-radius: 999px;
+  font-weight: 600;
+  box-shadow: var(--sjena);
+  animation: pojavi 0.3s ease;
+  transition: opacity 0.4s, transform 0.4s;
+}
+
+.obavijest.nestaje {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+/* =========================================================
+   CHATBOT
+   ========================================================= */
+.chat-gumb {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 100;
+  width: 3.8rem;
+  height: 3.8rem;
+  border-radius: 50%;
+  border: none;
+  background: var(--naglasak);
+  color: #fff;
+  font-size: 1.7rem;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(200, 85, 61, 0.45);
+  transition: transform 0.2s;
+}
+
+.chat-gumb:hover {
+  transform: scale(1.08);
+}
+
+.chat-gumb.otvoren .chat-gumb-ikona {
+  display: none;
+}
+
+.chat-gumb.otvoren::after {
+  content: "✕";
+  font-size: 1.3rem;
+}
+
+.chat-prozor {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 6.2rem;
+  z-index: 100;
+  width: 370px;
+  height: min(560px, calc(100vh - 8rem));
+  display: flex;
+  flex-direction: column;
+  background: var(--povrsina);
+  border-radius: 20px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+  animation: otvoriChat 0.25s ease;
+  border: 1px solid var(--rub);
+}
+
+@keyframes otvoriChat {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+}
+
+.chat-zaglavlje {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: var(--naglasak);
+  color: #fff;
+}
+
+.chat-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  display: grid;
+  place-items: center;
+  font-size: 1.4rem;
+}
+
+.chat-naslov {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.chat-naslov small {
+  opacity: 0.85;
+}
+
+.chat-akcija {
+  background: rgba(255, 255, 255, 0.18);
+  border: none;
+  color: #fff;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.chat-akcija:hover {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.chat-poruke {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  background: var(--pozadina);
+}
+
+.chat-poruka {
+  max-width: 88%;
+  padding: 0.65rem 0.9rem;
+  border-radius: 16px;
+  font-size: 0.93rem;
+  line-height: 1.45;
+  animation: pojavi 0.25s ease;
+  overflow-wrap: anywhere;
+}
+
+.chat-poruka.bot {
+  align-self: flex-start;
+  background: var(--povrsina);
+  border: 1px solid var(--rub);
+  border-bottom-left-radius: 4px;
+}
+
+.chat-poruka.korisnik {
+  align-self: flex-end;
+  background: var(--naglasak);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+[data-tema="tamna"] .chat-poruka.korisnik {
+  color: #1c1917;
+}
+
+.chat-poruka ul,
+.chat-poruka ol {
+  margin: 0.4rem 0;
+  padding-left: 1.2rem;
+}
+
+.chat-poruka li {
+  margin-bottom: 0.25rem;
+}
+
+.chat-recepti {
+  list-style: none;
+  padding-left: 0 !important;
+}
+
+.chat-recepti li {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.4rem 0.6rem;
+  background: var(--povrsina-2);
+  border-radius: 10px;
+}
+
+.chat-mini {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  object-fit: cover;
+  display: grid;
+  place-items: center;
+  font-size: 1.6rem;
+  background: var(--povrsina);
+}
+
+.chat-poruka a {
+  font-weight: 600;
+}
+
+.chat-poruka small {
+  color: var(--tekst-blagi);
+}
+
+.pise {
+  display: flex;
+  gap: 4px;
+  padding: 0.85rem 1rem;
+}
+
+.pise span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--tekst-blagi);
+  animation: tocka 1s infinite;
+}
+
+.pise span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.pise span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes tocka {
+  50% {
+    transform: translateY(-4px);
+    opacity: 0.4;
+  }
+}
+
+.chat-cipovi {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0 0.75rem;
+  overflow-x: auto;
+  background: var(--pozadina);
+}
+
+.chat-cipovi:not(:empty) {
+  padding-bottom: 0.6rem;
+}
+
+.cip {
+  flex-shrink: 0;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--naglasak);
+  background: var(--povrsina);
+  color: var(--naglasak);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cip:hover {
+  background: var(--naglasak);
+  color: #fff;
+}
+
+.chat-forma {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-top: 1px solid var(--rub);
+  background: var(--povrsina);
+}
+
+.chat-forma input {
+  flex: 1;
+  border-radius: 999px;
+  padding: 0.6rem 1rem;
+}
+
+.chat-forma button {
+  width: 2.6rem;
+  height: 2.6rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: none;
+  background: var(--naglasak);
+  color: #fff;
+  cursor: pointer;
+}
+
+/* =========================================================
+   PRILAGODBA ZA MOBITELE I TABLETE
+   ========================================================= */
+@media (max-width: 960px) {
+  .kategorije {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .filteri {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .filteri > div:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .recept-tijelo,
+  .planer-raspored,
+  .kontakt-raspored {
+    grid-template-columns: 1fr;
+  }
+
+  .kupnja {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .izbornik-gumb {
+    display: inline-grid;
+  }
+
+  .navigacija {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    padding: 0.75rem 1.25rem 1.25rem;
+    background: var(--pozadina);
+    border-bottom: 1px solid var(--rub);
+    box-shadow: var(--sjena);
+    display: none;
+  }
+
+  .navigacija.otvoren {
+    display: flex;
+  }
+
+  .navigacija a {
+    padding: 0.8rem 1rem;
+  }
+
+  .zaglavlje-akcije {
+    margin-left: auto;
+  }
+
+  .hero {
+    padding-top: 2.5rem;
+  }
+
+  .hero-sadrzaj {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-ilustracija {
+    display: none;
+  }
+
+  .istaknuto {
+    grid-template-columns: 1fr;
+  }
+
+  .istaknuto-slika {
+    min-height: 170px;
+    font-size: 5rem;
+  }
+
+  .istaknuto-tekst {
+    padding: 1.5rem;
+  }
+
+  .recept-zaglavlje {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .recept-emoji {
+    aspect-ratio: auto;
+    height: 240px;
+    font-size: 6rem;
+  }
+
+  .sekcija {
+    padding: 2.5rem 0;
+  }
+
+  .chat-poziv {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .kategorije {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .filteri {
+    grid-template-columns: 1fr;
+  }
+
+  .filteri-red .gumb {
+    margin-left: 0;
+  }
+
+  .hero-pretraga {
+    flex-direction: column;
+  }
+
+  .dodaj-planer {
+    width: 100%;
+  }
+
+  .dodaj-planer select {
+    flex: 1;
+  }
+
+  .chat-prozor {
+    right: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    z-index: 150;
+  }
+
+  .chat-gumb.otvoren {
+    display: none;
+  }
+}

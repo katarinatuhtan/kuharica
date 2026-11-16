@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Isplaniraj obroke za tjedan i dobij popis za kupnju.">
+  <title>Planer obroka | Kuharica</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍲</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-stranica="planer">
+  <header class="zaglavlje">
+    <div class="omotac zaglavlje-sadrzaj">
+      <a href="index.html" class="logo"><span class="logo-ikona">🍲</span><span class="logo-tekst">Kuharica</span></a>
+      <nav class="navigacija" id="navigacija" aria-label="Glavna navigacija">
+        <a href="index.html">Početna</a>
+        <a href="recepti.html">Recepti</a>
+        <a href="planer.html" class="aktivno" aria-current="page">Planer obroka</a>
+        <a href="kontakt.html">Kontakt</a>
+      </nav>
+      <div class="zaglavlje-akcije">
+        <button class="gumb-ikona" id="tema-gumb" aria-label="Promijeni temu">🌙</button>
+        <button class="gumb-ikona izbornik-gumb" id="izbornik-gumb" aria-label="Izbornik" aria-expanded="false" aria-controls="navigacija">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="omotac">
+      <div class="naslov-stranice">
+        <h1>Planer obroka</h1>
+        <p class="podnaslov">Rasporedi recepte po danima, a popis za kupnju složit će se sam. Plan se sprema u tvom pregledniku.</p>
+      </div>
+
+      <form class="planer-forma" id="planer-forma">
+        <div>
+          <label for="planer-recept">Recept</label>
+          <select id="planer-recept"></select>
+        </div>
+        <div>
+          <label for="planer-dan">Dan</label>
+          <select id="planer-dan"></select>
+        </div>
+        <button type="submit" class="gumb gumb-primarni">+ Dodaj u plan</button>
+      </form>
+
+      <div class="planer-raspored">
+        <div class="tjedan" id="tjedan"></div>
+
+        <aside class="blok kupnja">
+          <h2>🛒 Popis za kupnju</h2>
+          <p class="savjet" id="brojac-kupnje"></p>
+          <ul class="popis-kupnje" id="popis-kupnje"></ul>
+          <button class="gumb" id="ocisti-planer" type="button">🗑 Očisti planer</button>
+        </aside>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="podnozje">
+    <div class="omotac podnozje-sadrzaj">
+      <p>© 2026 Kuharica · Projekt iz kolegija Tehnologije interaktivnog weba</p>
+      <nav aria-label="Navigacija u podnožju"><a href="index.html">Početna</a> <a href="recepti.html">Recepti</a> <a href="planer.html">Planer obroka</a> <a href="kontakt.html">Kontakt</a></nav>
+    </div>
+  </footer>
+
+  <script src="js/podaci.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/chatbot.js"></script>
+</body>
+</html>
