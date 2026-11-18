@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Pošalji nam pitanje ili svoj recept.">
+  <title>Kontakt | Kuharica</title>
+  <link rel="icon" type="image/png" href="images/icons/pot.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="contact">
+  <header class="header">
+    <div class="wrapper header-content">
+      <a href="index.html" class="logo"><span class="logo-icon"><img class="icon" src="images/icons/pot.png" alt=""></span><span class="logo-text">Kuharica</span></a>
+      <nav class="navigation" id="navigation" aria-label="Glavna navigacija">
+        <a href="index.html">Početna</a>
+        <a href="recipes.html">Recepti</a>
+        <a href="planner.html">Planer obroka</a>
+        <a href="contact.html" class="active" aria-current="page">Kontakt</a>
+      </nav>
+      <div class="header-actions">
+        <button class="btn-icon" id="theme-toggle" aria-label="Promijeni temu"><img class="icon" src="images/icons/moon.png" alt=""></button>
+        <button class="btn-icon menu-btn" id="menu-toggle" aria-label="Izbornik" aria-expanded="false" aria-controls="navigation">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrapper">
+      <div class="page-title">
+        <h1>Kontakt</h1>
+        <p class="subtitle">Imaš pitanje, prijedlog ili recept koji želiš podijeliti? Javi nam se.</p>
+      </div>
+
+      <div class="contact-layout">
+        <section class="block">
+          <form id="contact-form" novalidate>
+            <div class="field">
+              <label for="name">Ime</label>
+              <input type="text" id="name" autocomplete="name">
+              <small class="error" aria-live="polite"></small>
+            </div>
+            <div class="field">
+              <label for="email">E-mail</label>
+              <input type="email" id="email" autocomplete="email">
+              <small class="error" aria-live="polite"></small>
+            </div>
+            <div class="field">
+              <label for="topic">Tema</label>
+              <select id="topic">
+                <option value="">Odaberi…</option>
+                <option value="question">Pitanje o receptu</option>
+                <option value="recipe">Želim poslati svoj recept</option>
+                <option value="suggestion">Prijedlog ili pohvala</option>
+                <option value="other">Ostalo</option>
+              </select>
+              <small class="error" aria-live="polite"></small>
+            </div>
+            <div class="field" id="recipe-field" hidden>
+              <label for="recipe-name">Naziv recepta</label>
+              <input type="text" id="recipe-name" placeholder="npr. Bakine fritule">
+              <small class="error" aria-live="polite"></small>
+            </div>
+            <div class="field">
+              <label for="message">Poruka</label>
+              <textarea id="message" maxlength="500" placeholder="Napiši poruku…"></textarea>
+              <span class="char-count" id="char-count">0 / 500</span>
+              <small class="error" aria-live="polite"></small>
+            </div>
+            <div class="field">
+              <label class="checkbox"><input type="checkbox" id="consent"> Slažem se da se moji podaci koriste za odgovor na poruku.</label>
+              <small class="error" aria-live="polite"></small>
+            </div>
+            <button type="submit" class="btn btn-primary">Pošalji poruku</button>
+          </form>
+
+          <div class="success" id="success" hidden>
+            <p class="success-emoji"><img class="icon" src="images/icons/check.png" alt=""></p>
+            <h2>Hvala, <span id="success-name"></span>!</h2>
+            <p>Tvoja poruka je zaprimljena. Javit ćemo ti se uskoro.</p>
+            <button class="btn" id="new-message" type="button">Pošalji novu poruku</button>
+          </div>
+        </section>
+
+        <aside>
+          <div class="block">
+            <h2>Gdje smo</h2>
+            <div class="info-item"><span><img class="icon" src="images/icons/pin.png" alt=""></span><p>Rijeka, Hrvatska</p></div>
+            <div class="info-item"><span><img class="icon" src="images/icons/envelope.png" alt=""></span><p>kuharica@primjer.hr</p></div>
+            <div class="info-item"><span><img class="icon" src="images/icons/speech-bubble.png" alt=""></span><p>Za brza pitanja o receptima pitaj Kuhar Bota u donjem desnom kutu.</p></div>
+          </div>
+
+          <div class="questions">
+            <h2>Česta pitanja</h2>
+            <div class="question">
+              <button class="question-btn" aria-expanded="false" aria-controls="answer-1">Gdje se spremaju moji favoriti i planer?</button>
+              <div class="answer" id="answer-1" hidden><p>Lokalno u tvom pregledniku (localStorage). Ostaju spremljeni i kad zatvoriš stranicu, ali samo na tom uređaju.</p></div>
+            </div>
+            <div class="question">
+              <button class="question-btn" aria-expanded="false" aria-controls="answer-2">Mogu li promijeniti broj porcija?</button>
+              <div class="answer" id="answer-2" hidden><p>Da. Na stranici recepta upiši broj porcija ili koristi gumbe + i −, a količine sastojaka preračunat će se same.</p></div>
+            </div>
+            <div class="question">
+              <button class="question-btn" aria-expanded="false" aria-controls="answer-3">Kako mogu poslati svoj recept?</button>
+              <div class="answer" id="answer-3" hidden><p>U obrascu odaberi temu „Želim poslati svoj recept“, upiši naziv i opiši recept u poruci.</p></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="wrapper footer-content">
+      <p>© 2026 Kuharica · Projekt iz kolegija Tehnologije interaktivnog weba</p>
+      <nav aria-label="Navigacija u podnožju"><a href="index.html">Početna</a> <a href="recipes.html">Recepti</a> <a href="planner.html">Planer obroka</a> <a href="contact.html">Kontakt</a></nav>
+    </div>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/chatbot.js"></script>
+</body>
+</html>

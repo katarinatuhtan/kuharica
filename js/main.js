@@ -8,8 +8,8 @@
 /* ---------- Pomoćne funkcije ---------- */
 
 // mala slova i bez dijakritika ("Rižoto" -> "rizoto") radi lakše pretrage
-function normaliziraj(tekst) {
-  return String(tekst)
+function normalize(text) {
+  return String(text)
     .toLowerCase()
     .replace(/đ/g, "d")
     .normalize("NFD")
@@ -17,691 +17,718 @@ function normaliziraj(tekst) {
 }
 
 // čitanje i spremanje u localStorage (u try/catch jer preglednik može blokirati pohranu)
-function ucitaj(kljuc, zadano) {
+function load(key, fallback) {
   try {
-    const vrijednost = localStorage.getItem(kljuc);
-    return vrijednost ? JSON.parse(vrijednost) : zadano;
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
   } catch (e) {
-    return zadano;
+    return fallback;
   }
 }
 
-function spremi(kljuc, vrijednost) {
+function save(key, value) {
   try {
-    localStorage.setItem(kljuc, JSON.stringify(vrijednost));
+    localStorage.setItem(key, JSON.stringify(value));
   } catch (e) {
     /* pohrana nije dostupna – stranica i dalje radi */
   }
 }
 
-function dohvatiParametar(ime) {
-  return new URLSearchParams(window.location.search).get(ime);
+function getParam(name) {
+  return new URLSearchParams(window.location.search).get(name);
 }
 
-function pronadiRecept(id) {
-  return RECEPTI.find((r) => r.id === Number(id));
+function findRecipe(id) {
+  return RECIPES.find((r) => r.id === Number(id));
 }
 
 // 1,5 umjesto 1.5 i zaokruživanje na jednu decimalu
-function formatKolicina(broj) {
-  return String(Math.round(broj * 10) / 10).replace(".", ",");
+function formatAmount(number) {
+  return String(Math.round(number * 10) / 10).replace(".", ",");
 }
 
 // hrvatska množina: 1 recept, 2 recepta, 5 recepata
-function mnozina(n, jedan, dva, pet) {
-  const zadnja = n % 10;
-  const zadnjeDvije = n % 100;
-  if (zadnja === 1 && zadnjeDvije !== 11) return jedan;
-  if (zadnja >= 2 && zadnja <= 4 && (zadnjeDvije < 12 || zadnjeDvije > 14)) return dva;
-  return pet;
+function plural(n, one, few, many) {
+  const lastDigit = n % 10;
+  const lastTwo = n % 100;
+  if (lastDigit === 1 && lastTwo !== 11) return one;
+  if (lastDigit >= 2 && lastDigit <= 4 && (lastTwo < 12 || lastTwo > 14)) return few;
+  return many;
 }
 
 // kratka poruka u kutu ekrana (dinamičko dodavanje i uklanjanje elementa)
-function obavijest(tekst) {
-  let kontejner = document.querySelector(".obavijesti");
-  if (!kontejner) {
-    kontejner = document.createElement("div");
-    kontejner.className = "obavijesti";
-    kontejner.setAttribute("aria-live", "polite");
-    document.body.appendChild(kontejner);
+function showToast(html) {
+  let container = document.querySelector(".toasts");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = "toasts";
+    container.setAttribute("aria-live", "polite");
+    document.body.appendChild(container);
   }
-  const poruka = document.createElement("div");
-  poruka.className = "obavijest";
-  poruka.textContent = tekst;
-  kontejner.appendChild(poruka);
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerHTML = html;
+  container.appendChild(toast);
   setTimeout(() => {
-    poruka.classList.add("nestaje");
-    setTimeout(() => poruka.remove(), 400);
+    toast.classList.add("fade-out");
+    setTimeout(() => toast.remove(), 400);
   }, 2500);
+}
+
+// 3D ikona iz kolekcije Thiings (thiings.co) umjesto emojija
+function icon(name, alt = "") {
+  return `<img class="icon" src="images/icons/${name}.png" alt="${alt}">`;
 }
 
 /* ---------- Favoriti ---------- */
 
-function dohvatiFavorite() {
-  return ucitaj("favoriti", []);
+function getFavorites() {
+  return load("favorites", []);
 }
 
-function promijeniFavorit(id) {
-  let favoriti = dohvatiFavorite();
-  if (favoriti.includes(id)) {
-    favoriti = favoriti.filter((x) => x !== id);
-    obavijest("Uklonjeno iz favorita");
+function toggleFavorite(id) {
+  let favorites = getFavorites();
+  if (favorites.includes(id)) {
+    favorites = favorites.filter((x) => x !== id);
+    showToast("Uklonjeno iz favorita");
   } else {
-    favoriti.push(id);
-    obavijest("Dodano u favorite ❤️");
+    favorites.push(id);
+    showToast(`Dodano u favorite ${icon("heart")}`);
   }
-  spremi("favoriti", favoriti);
-  return favoriti.includes(id);
+  save("favorites", favorites);
+  return favorites.includes(id);
 }
 
-function azurirajSrce(gumb, jeFavorit) {
-  gumb.classList.toggle("aktivno", jeFavorit);
-  gumb.setAttribute("aria-pressed", jeFavorit);
-  if (gumb.classList.contains("srce-veliko")) {
-    gumb.textContent = jeFavorit ? "♥ Spremljeno" : "♡ Spremi";
+function updateHeart(button, isFavorite) {
+  button.classList.toggle("active", isFavorite);
+  button.setAttribute("aria-pressed", isFavorite);
+  if (button.classList.contains("heart-large")) {
+    button.textContent = isFavorite ? "♥ Spremljeno" : "♡ Spremi";
   } else {
-    gumb.textContent = jeFavorit ? "♥" : "♡";
+    button.textContent = isFavorite ? "♥" : "♡";
   }
 }
 
 // jedan "click" slušač za sva srca na stranici (delegiranje događaja)
 document.addEventListener("click", (e) => {
-  const srce = e.target.closest(".srce");
-  if (!srce) return;
+  const heart = e.target.closest(".heart");
+  if (!heart) return;
   e.preventDefault();
-  const id = Number(srce.dataset.id);
-  const jeFavorit = promijeniFavorit(id);
-  document.querySelectorAll(`.srce[data-id="${id}"]`).forEach((g) => azurirajSrce(g, jeFavorit));
-  document.dispatchEvent(new CustomEvent("favoriti-promijenjeni"));
+  const id = Number(heart.dataset.id);
+  const isFavorite = toggleFavorite(id);
+  document.querySelectorAll(`.heart[data-id="${id}"]`).forEach((b) => updateHeart(b, isFavorite));
+  document.dispatchEvent(new CustomEvent("favorites-changed"));
 });
 
 /* ---------- Planer (spremljen u localStorage) ---------- */
 
-function dohvatiPlaner() {
-  const planer = ucitaj("planer", {});
-  DANI.forEach((dan) => {
-    if (!Array.isArray(planer[dan])) planer[dan] = [];
+function getPlanner() {
+  const planner = load("planner", {});
+  DAYS.forEach((day) => {
+    if (!Array.isArray(planner[day])) planner[day] = [];
   });
-  return planer;
+  return planner;
 }
 
-function dodajUPlaner(dan, id) {
-  const planer = dohvatiPlaner();
-  planer[dan].push(Number(id));
-  spremi("planer", planer);
+function addToPlanner(day, id) {
+  const planner = getPlanner();
+  planner[day].push(Number(id));
+  save("planner", planner);
 }
 
 /* ---------- Slika recepta (fotografija ili emoji ako slike nema) ---------- */
 
-function slikaRecepta(r) {
-  return r.slika
-    ? `<img src="${r.slika}" alt="${r.naziv}" loading="lazy"${r.fokus ? ` style="object-position:${r.fokus}"` : ""}>`
-    : `<span>${r.emoji}</span>`;
+function recipeImage(r) {
+  return r.image
+    ? `<img src="${r.image}" alt="${r.name}" loading="lazy"${r.focus ? ` style="object-position:${r.focus}"` : ""}>`
+    : `<span>${icon(r.icon)}</span>`;
 }
 
 /* ---------- Kartica recepta ---------- */
 
-function kreirajKarticu(r) {
-  const kat = KATEGORIJE[r.kategorija];
-  const jeFavorit = dohvatiFavorite().includes(r.id);
-  const kartica = document.createElement("article");
-  kartica.className = "kartica";
-  kartica.innerHTML = `
-    <a href="recept.html?id=${r.id}" class="kartica-slika" style="--boja:${kat.boja}" aria-hidden="true" tabindex="-1">
-      ${slikaRecepta(r)}
+function createCard(r) {
+  const cat = CATEGORIES[r.category];
+  const isFavorite = getFavorites().includes(r.id);
+  const card = document.createElement("article");
+  card.className = "card";
+  card.innerHTML = `
+    <a href="recipe.html?id=${r.id}" class="card-image" style="--color:${cat.color}" aria-hidden="true" tabindex="-1">
+      ${recipeImage(r)}
     </a>
-    <button class="srce ${jeFavorit ? "aktivno" : ""}" data-id="${r.id}" aria-pressed="${jeFavorit}"
-      aria-label="Spremi u favorite">${jeFavorit ? "♥" : "♡"}</button>
-    <div class="kartica-tijelo">
-      <span class="oznaka">${kat.jednina}</span>
-      <h3><a href="recept.html?id=${r.id}">${r.naziv}</a></h3>
-      <p>${r.opis}</p>
+    <button class="heart ${isFavorite ? "active" : ""}" data-id="${r.id}" aria-pressed="${isFavorite}"
+      aria-label="Spremi u favorite">${isFavorite ? "♥" : "♡"}</button>
+    <div class="card-body">
+      <span class="tag">${cat.singular}</span>
+      <h3><a href="recipe.html?id=${r.id}">${r.name}</a></h3>
+      <p>${r.description}</p>
       <div class="meta">
-        <span>⏱ ${r.vrijeme} min</span>
-        <span>📊 ${r.tezina}</span>
-        ${r.vegetarijansko ? '<span title="Vegetarijansko">🌱</span>' : ""}
+        <span>${icon("stopwatch")} ${r.time} min</span>
+        <span>${icon("bar-chart")} ${r.difficulty}</span>
+        ${r.vegetarian ? `<span>${icon("seedling", "Vegetarijansko")}</span>` : ""}
       </div>
     </div>
-    <div class="kartica-nutri">🔥 ${r.kalorije} kcal po porciji · ${r.sastojci.length} sastojaka</div>
+    <div class="card-nutrition">${icon("fire")} ${r.calories} kcal po porciji · ${r.ingredients.length} sastojaka</div>
   `;
   // mouseover: prikaz dodatnih informacija
-  kartica.addEventListener("mouseover", () => kartica.classList.add("prikazi-nutri"));
-  kartica.addEventListener("mouseleave", () => kartica.classList.remove("prikazi-nutri"));
-  return kartica;
+  card.addEventListener("mouseover", () => card.classList.add("show-nutrition"));
+  card.addEventListener("mouseleave", () => card.classList.remove("show-nutrition"));
+  return card;
 }
 
 /* ---------- Tema (svijetla / tamna) ---------- */
 
-function postaviTemu(tema) {
-  document.documentElement.dataset.tema = tema;
-  const gumb = document.getElementById("tema-gumb");
-  if (gumb) {
-    gumb.textContent = tema === "tamna" ? "☀️" : "🌙";
-    gumb.setAttribute("aria-label", tema === "tamna" ? "Uključi svijetlu temu" : "Uključi tamnu temu");
+function setTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  const button = document.getElementById("theme-toggle");
+  if (button) {
+    button.innerHTML = icon(theme === "dark" ? "sun" : "moon");
+    button.setAttribute("aria-label", theme === "dark" ? "Uključi svijetlu temu" : "Uključi tamnu temu");
   }
-  spremi("tema", tema);
+  save("theme", theme);
 }
 
-function inicijalizirajTemu() {
-  const sustavTamna = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  postaviTemu(ucitaj("tema", sustavTamna ? "tamna" : "svijetla"));
-  const gumb = document.getElementById("tema-gumb");
-  if (gumb) {
-    gumb.addEventListener("click", () => {
-      const nova = document.documentElement.dataset.tema === "tamna" ? "svijetla" : "tamna";
-      postaviTemu(nova);
+function initTheme() {
+  const systemDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  setTheme(load("theme", systemDark ? "dark" : "light"));
+  const button = document.getElementById("theme-toggle");
+  if (button) {
+    button.addEventListener("click", () => {
+      const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      setTheme(next);
     });
   }
 }
 
 /* ---------- Mobilni izbornik ---------- */
 
-function inicijalizirajNavigaciju() {
-  const gumb = document.getElementById("izbornik-gumb");
-  const nav = document.getElementById("navigacija");
-  if (!gumb || !nav) return;
-  gumb.addEventListener("click", () => {
-    const otvoren = nav.classList.toggle("otvoren");
-    gumb.setAttribute("aria-expanded", otvoren);
-    gumb.textContent = otvoren ? "✕" : "☰";
+function initNavigation() {
+  const button = document.getElementById("menu-toggle");
+  const nav = document.getElementById("navigation");
+  if (!button || !nav) return;
+  button.addEventListener("click", () => {
+    const isOpen = nav.classList.toggle("open");
+    button.setAttribute("aria-expanded", isOpen);
+    button.textContent = isOpen ? "✕" : "☰";
   });
 }
 
 /* =========================================================
    POČETNA
    ========================================================= */
-function inicijalizirajPocetnu() {
+function initHome() {
   // recept dana – nasumični odabir, gumb daje novi prijedlog
-  const receptDana = document.getElementById("recept-dana");
-  const gumbNovi = document.getElementById("novi-prijedlog");
-  let trenutni = -1;
+  const recipeOfTheDay = document.getElementById("recipe-of-the-day");
+  const newSuggestionButton = document.getElementById("new-suggestion");
+  let current = -1;
 
-  function prikaziReceptDana() {
+  function showRecipeOfTheDay() {
     let i;
     do {
-      i = Math.floor(Math.random() * RECEPTI.length);
-    } while (i === trenutni && RECEPTI.length > 1);
-    trenutni = i;
-    const r = RECEPTI[i];
-    const kat = KATEGORIJE[r.kategorija];
-    receptDana.innerHTML = `
-      <div class="istaknuto-slika" style="--boja:${kat.boja}">${slikaRecepta(r)}</div>
-      <div class="istaknuto-tekst">
-        <span class="oznaka">${kat.jednina}</span>
-        <h3>${r.naziv}</h3>
-        <p>${r.opis}</p>
+      i = Math.floor(Math.random() * RECIPES.length);
+    } while (i === current && RECIPES.length > 1);
+    current = i;
+    const r = RECIPES[i];
+    const cat = CATEGORIES[r.category];
+    recipeOfTheDay.innerHTML = `
+      <div class="featured-image" style="--color:${cat.color}">${recipeImage(r)}</div>
+      <div class="featured-text">
+        <span class="tag">${cat.singular}</span>
+        <h3>${r.name}</h3>
+        <p>${r.description}</p>
         <div class="meta">
-          <span>⏱ ${r.vrijeme} min</span><span>📊 ${r.tezina}</span><span>🍽 ${r.porcije} ${mnozina(r.porcije, "porcija", "porcije", "porcija")}</span>
+          <span>${icon("stopwatch")} ${r.time} min</span><span>${icon("bar-chart")} ${r.difficulty}</span><span>${icon("plate")} ${r.servings} ${plural(r.servings, "porcija", "porcije", "porcija")}</span>
         </div>
-        <a href="recept.html?id=${r.id}" class="gumb gumb-primarni">Pogledaj recept →</a>
+        <a href="recipe.html?id=${r.id}" class="btn btn-primary">Pogledaj recept →</a>
       </div>`;
     // ponovno pokretanje animacije
-    receptDana.classList.remove("animacija");
-    void receptDana.offsetWidth;
-    receptDana.classList.add("animacija");
+    recipeOfTheDay.classList.remove("animate");
+    void recipeOfTheDay.offsetWidth;
+    recipeOfTheDay.classList.add("animate");
   }
-  gumbNovi.addEventListener("click", prikaziReceptDana);
-  prikaziReceptDana();
+  newSuggestionButton.addEventListener("click", showRecipeOfTheDay);
+  showRecipeOfTheDay();
 
   // kategorije
-  const kategorije = document.getElementById("kategorije");
-  Object.entries(KATEGORIJE).forEach(([kljuc, k]) => {
-    const broj = RECEPTI.filter((r) => r.kategorija === kljuc).length;
-    kategorije.insertAdjacentHTML(
+  const categories = document.getElementById("categories");
+  Object.entries(CATEGORIES).forEach(([key, c]) => {
+    const count = RECIPES.filter((r) => r.category === key).length;
+    categories.insertAdjacentHTML(
       "beforeend",
-      `<a class="kategorija" href="recepti.html?kategorija=${kljuc}" style="--boja:${k.boja}">
-         <span class="kategorija-emoji">${k.emoji}</span>
-         <strong>${k.naziv}</strong>
-         <small>${broj} ${mnozina(broj, "recept", "recepta", "recepata")}</small>
+      `<a class="category" href="recipes.html?category=${key}" style="--color:${c.color}">
+         <span class="category-emoji">${icon(c.icon)}</span>
+         <strong>${c.name}</strong>
+         <small>${count} ${plural(count, "recept", "recepta", "recepata")}</small>
        </a>`
     );
   });
 
   // tri najbrža recepta
-  const najbrzi = document.getElementById("najbrzi");
-  [...RECEPTI]
-    .sort((a, b) => a.vrijeme - b.vrijeme)
+  const fastest = document.getElementById("fastest");
+  [...RECIPES]
+    .sort((a, b) => a.time - b.time)
     .slice(0, 3)
-    .forEach((r) => najbrzi.appendChild(kreirajKarticu(r)));
+    .forEach((r) => fastest.appendChild(createCard(r)));
 
   // favoriti – sekcija se prikazuje samo ako ih ima
-  const sekcijaFav = document.getElementById("favoriti-sekcija");
-  const mrezaFav = document.getElementById("favoriti-mreza");
-  function prikaziFavorite() {
-    const favoriti = dohvatiFavorite().map(pronadiRecept).filter(Boolean);
-    mrezaFav.innerHTML = "";
-    favoriti.forEach((r) => mrezaFav.appendChild(kreirajKarticu(r)));
-    sekcijaFav.hidden = favoriti.length === 0;
+  const favoritesSection = document.getElementById("favorites-section");
+  const favoritesGrid = document.getElementById("favorites-grid");
+  function showFavorites() {
+    const favorites = getFavorites().map(findRecipe).filter(Boolean);
+    favoritesGrid.innerHTML = "";
+    favorites.forEach((r) => favoritesGrid.appendChild(createCard(r)));
+    favoritesSection.hidden = favorites.length === 0;
   }
-  prikaziFavorite();
-  document.addEventListener("favoriti-promijenjeni", prikaziFavorite);
+  showFavorites();
+  document.addEventListener("favorites-changed", showFavorites);
 }
 
 /* =========================================================
    RECEPTI – pretraga i filtriranje
    ========================================================= */
-function inicijalizirajRecepte() {
-  const pretraga = document.getElementById("pretraga");
-  const kategorija = document.getElementById("filter-kategorija");
-  const vrijeme = document.getElementById("filter-vrijeme");
-  const tezina = document.getElementById("filter-tezina");
-  const vege = document.getElementById("filter-vege");
-  const samoFavoriti = document.getElementById("filter-favoriti");
-  const ponisti = document.getElementById("ponisti-filtere");
-  const mreza = document.getElementById("mreza-recepata");
-  const brojac = document.getElementById("brojac");
-  const prazno = document.getElementById("nema-rezultata");
+// granica za tag "Do 400 kcal" (kcal po porciji)
+const LIGHT_CALORIES = 400;
 
-  Object.entries(KATEGORIJE).forEach(([kljuc, k]) => kategorija.add(new Option(k.naziv, kljuc)));
+function initRecipes() {
+  const search = document.getElementById("search");
+  const category = document.getElementById("filter-category");
+  const time = document.getElementById("filter-time");
+  const difficulty = document.getElementById("filter-difficulty");
+  const veg = document.getElementById("filter-veg");
+  const meat = document.getElementById("filter-meat");
+  const light = document.getElementById("filter-light");
+  const sweet = document.getElementById("filter-sweet");
+  const favoritesOnly = document.getElementById("filter-favorites");
+  const resetButton = document.getElementById("reset-filters");
+  const grid = document.getElementById("recipe-grid");
+  const resultsCount = document.getElementById("results-count");
+  const noResults = document.getElementById("no-results");
 
-  // početne vrijednosti iz URL-a (npr. recepti.html?kategorija=desert)
-  const katIzUrla = dohvatiParametar("kategorija");
-  if (katIzUrla && KATEGORIJE[katIzUrla]) kategorija.value = katIzUrla;
-  const traziIzUrla = dohvatiParametar("trazi");
-  if (traziIzUrla) pretraga.value = traziIzUrla;
+  Object.entries(CATEGORIES).forEach(([key, c]) => category.add(new Option(c.name, key)));
 
-  function filtriraj() {
-    const rijeci = normaliziraj(pretraga.value.trim()).split(/\s+/).filter(Boolean);
-    const favoriti = dohvatiFavorite();
+  // početne vrijednosti iz URL-a (npr. recipes.html?category=dessert)
+  const categoryFromUrl = getParam("category");
+  if (categoryFromUrl && CATEGORIES[categoryFromUrl]) category.value = categoryFromUrl;
+  const queryFromUrl = getParam("q");
+  if (queryFromUrl) search.value = queryFromUrl;
 
-    const rezultati = RECEPTI.filter((r) => {
-      const tekst = normaliziraj([r.naziv, r.opis, ...r.sastojci.map((s) => s.naziv)].join(" "));
-      if (!rijeci.every((rijec) => tekst.includes(rijec))) return false;
-      if (kategorija.value && r.kategorija !== kategorija.value) return false;
-      if (vrijeme.value && r.vrijeme > Number(vrijeme.value)) return false;
-      if (tezina.value && r.tezina !== tezina.value) return false;
-      if (vege.checked && !r.vegetarijansko) return false;
-      if (samoFavoriti.checked && !favoriti.includes(r.id)) return false;
+  function applyFilters() {
+    const words = normalize(search.value.trim()).split(/\s+/).filter(Boolean);
+    const favorites = getFavorites();
+
+    const results = RECIPES.filter((r) => {
+      const text = normalize([r.name, r.description, ...r.ingredients.map((i) => i.name)].join(" "));
+      if (!words.every((word) => text.includes(word))) return false;
+      if (category.value && r.category !== category.value) return false;
+      if (time.value && r.time > Number(time.value)) return false;
+      if (difficulty.value && r.difficulty !== difficulty.value) return false;
+      if (veg.checked && !r.vegetarian) return false;
+      if (meat.checked && r.vegetarian) return false;
+      if (light.checked && r.calories > LIGHT_CALORIES) return false;
+      if (sweet.checked && r.category !== "dessert") return false;
+      if (favoritesOnly.checked && !favorites.includes(r.id)) return false;
       return true;
     });
 
-    mreza.innerHTML = "";
-    rezultati.forEach((r) => mreza.appendChild(kreirajKarticu(r)));
-    brojac.textContent = `Pronađeno: ${rezultati.length} ${mnozina(rezultati.length, "recept", "recepta", "recepata")}`;
-    prazno.hidden = rezultati.length > 0;
+    grid.innerHTML = "";
+    results.forEach((r) => grid.appendChild(createCard(r)));
+    resultsCount.textContent = `Pronađeno: ${results.length} ${plural(results.length, "recept", "recepta", "recepata")}`;
+    noResults.hidden = results.length > 0;
   }
 
-  pretraga.addEventListener("input", filtriraj);
-  [kategorija, vrijeme, tezina, vege, samoFavoriti].forEach((el) => el.addEventListener("change", filtriraj));
-  ponisti.addEventListener("click", () => {
-    pretraga.value = "";
-    kategorija.value = "";
-    vrijeme.value = "";
-    tezina.value = "";
-    vege.checked = false;
-    samoFavoriti.checked = false;
-    history.replaceState(null, "", "recepti.html");
-    filtriraj();
-    pretraga.focus();
+  search.addEventListener("input", applyFilters);
+  [category, time, difficulty, veg, meat, light, sweet, favoritesOnly].forEach((el) => el.addEventListener("change", applyFilters));
+
+  // "Vegetarijansko" i "S mesom" se isključuju – uključivanje jednog gasi drugi
+  veg.addEventListener("change", () => {
+    if (veg.checked && meat.checked) {
+      meat.checked = false;
+      applyFilters();
+    }
   });
-  document.addEventListener("favoriti-promijenjeni", () => {
-    if (samoFavoriti.checked) filtriraj();
+  meat.addEventListener("change", () => {
+    if (meat.checked && veg.checked) {
+      veg.checked = false;
+      applyFilters();
+    }
+  });
+  resetButton.addEventListener("click", () => {
+    search.value = "";
+    category.value = "";
+    time.value = "";
+    difficulty.value = "";
+    [veg, meat, light, sweet, favoritesOnly].forEach((tag) => (tag.checked = false));
+    history.replaceState(null, "", "recipes.html");
+    applyFilters();
+    search.focus();
+  });
+  document.addEventListener("favorites-changed", () => {
+    if (favoritesOnly.checked) applyFilters();
   });
 
-  filtriraj();
+  applyFilters();
 }
 
 /* =========================================================
    POJEDINAČNI RECEPT
    ========================================================= */
-function inicijalizirajRecept() {
-  const sadrzaj = document.getElementById("recept-sadrzaj");
-  const r = pronadiRecept(dohvatiParametar("id"));
+function initRecipe() {
+  const content = document.getElementById("recipe-content");
+  const r = findRecipe(getParam("id"));
 
   if (!r) {
-    sadrzaj.innerHTML = `
-      <div class="prazno">
-        <p class="prazno-emoji">🍽️</p>
+    content.innerHTML = `
+      <div class="empty">
+        <p class="empty-emoji">${icon("plate")}</p>
         <h1>Recept nije pronađen</h1>
         <p>Možda je poveznica neispravna. Pogledaj sve recepte.</p>
-        <a href="recepti.html" class="gumb gumb-primarni">Svi recepti</a>
+        <a href="recipes.html" class="btn btn-primary">Svi recepti</a>
       </div>`;
-    document.getElementById("slicni-sekcija").hidden = true;
+    document.getElementById("similar-section").hidden = true;
     return;
   }
 
-  const kat = KATEGORIJE[r.kategorija];
-  const jeFavorit = dohvatiFavorite().includes(r.id);
-  document.title = `${r.naziv} | Kuharica`;
+  const cat = CATEGORIES[r.category];
+  const isFavorite = getFavorites().includes(r.id);
+  document.title = `${r.name} | Kuharica`;
 
-  sadrzaj.innerHTML = `
-    <nav class="mrvice" aria-label="Putanja"><a href="recepti.html">Recepti</a> › <a href="recepti.html?kategorija=${r.kategorija}">${kat.naziv}</a> › <span>${r.naziv}</span></nav>
-    <div class="recept-zaglavlje">
-      <div class="recept-emoji" style="--boja:${kat.boja}">${slikaRecepta(r)}</div>
-      <div class="recept-uvod">
-        <span class="oznaka">${kat.jednina}</span>
-        <h1>${r.naziv}</h1>
-        <p class="recept-opis">${r.opis}</p>
-        <ul class="recept-meta">
-          <li>⏱ <strong>${r.vrijeme} min</strong>${r.napomena ? ` <small>${r.napomena}</small>` : ""}</li>
-          <li>📊 ${r.tezina}</li>
-          <li>🔥 ${r.kalorije} kcal / porcija</li>
-          <li>${r.vegetarijansko ? "🌱 Vegetarijansko" : "🍖 Sadrži meso"}</li>
+  content.innerHTML = `
+    <nav class="breadcrumbs" aria-label="Putanja"><a href="recipes.html">Recepti</a> › <a href="recipes.html?category=${r.category}">${cat.name}</a> › <span>${r.name}</span></nav>
+    <div class="recipe-header">
+      <div class="recipe-emoji" style="--color:${cat.color}">${recipeImage(r)}</div>
+      <div class="recipe-intro">
+        <span class="tag">${cat.singular}</span>
+        <h1>${r.name}</h1>
+        <p class="recipe-description">${r.description}</p>
+        <ul class="recipe-meta">
+          <li>${icon("stopwatch")} <strong>${r.time} min</strong>${r.note ? ` <small>${r.note}</small>` : ""}</li>
+          <li>${icon("bar-chart")} ${r.difficulty}</li>
+          <li>${icon("fire")} ${r.calories} kcal / porcija</li>
+          <li>${r.vegetarian ? `${icon("seedling")} Vegetarijansko` : `${icon("meat")} Sadrži meso`}</li>
         </ul>
-        <div class="recept-akcije">
-          <button class="gumb srce srce-veliko ${jeFavorit ? "aktivno" : ""}" data-id="${r.id}" aria-pressed="${jeFavorit}">${jeFavorit ? "♥ Spremljeno" : "♡ Spremi"}</button>
-          <div class="dodaj-planer">
-            <label for="planer-dan" class="vizualno-skriveno">Dan u tjednu</label>
-            <select id="planer-dan">${DANI.map((d) => `<option>${d}</option>`).join("")}</select>
-            <button class="gumb gumb-primarni" id="dodaj-u-planer">📅 Dodaj u planer</button>
+        <div class="recipe-actions">
+          <button class="btn heart heart-large ${isFavorite ? "active" : ""}" data-id="${r.id}" aria-pressed="${isFavorite}">${isFavorite ? "♥ Spremljeno" : "♡ Spremi"}</button>
+          <div class="add-to-planner">
+            <label for="planner-day" class="visually-hidden">Dan u tjednu</label>
+            <select id="planner-day">${DAYS.map((d) => `<option>${d}</option>`).join("")}</select>
+            <button class="btn btn-primary" id="add-to-planner">${icon("calendar")} Dodaj u planer</button>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="recept-tijelo">
-      <section class="blok">
+    <div class="recipe-body">
+      <section class="block">
         <h2>Sastojci</h2>
-        <div class="porcije">
+        <div class="servings">
           <span>Porcije:</span>
-          <button class="gumb-ikona" id="manje-porcija" aria-label="Manje porcija">−</button>
-          <input type="number" id="broj-porcija" min="1" max="50" value="${r.porcije}" aria-label="Broj porcija">
-          <button class="gumb-ikona" id="vise-porcija" aria-label="Više porcija">+</button>
+          <button class="btn-icon" id="fewer-servings" aria-label="Manje porcija">−</button>
+          <input type="number" id="servings-input" min="1" max="50" value="${r.servings}" aria-label="Broj porcija">
+          <button class="btn-icon" id="more-servings" aria-label="Više porcija">+</button>
         </div>
-        <ul class="sastojci-popis" id="sastojci-popis"></ul>
-        <p class="savjet">💡 Klikni sastojak kad ga pripremiš.</p>
+        <ul class="ingredients-list" id="ingredients-list"></ul>
+        <p class="tip">${icon("light-bulb")} Klikni sastojak kad ga pripremiš.</p>
       </section>
 
-      <section class="blok">
+      <section class="block">
         <h2>Postupak</h2>
-        <ol class="postupak" id="postupak">
-          ${r.postupak.map((korak) => `<li tabindex="0">${korak}</li>`).join("")}
+        <ol class="steps" id="steps">
+          ${r.steps.map((step) => `<li tabindex="0">${step}</li>`).join("")}
         </ol>
-        <div class="napredak" aria-hidden="true"><div class="napredak-traka" id="napredak-traka"></div></div>
-        <p class="savjet" id="napredak-tekst">💡 Klikni korak kad ga završiš.</p>
+        <div class="progress" aria-hidden="true"><div class="progress-bar" id="progress-bar"></div></div>
+        <p class="tip" id="progress-text">${icon("light-bulb")} Klikni korak kad ga završiš.</p>
       </section>
     </div>`;
 
   // --- preračun porcija ---
-  const unosPorcija = document.getElementById("broj-porcija");
-  const popis = document.getElementById("sastojci-popis");
-  const oznaceni = new Set();
+  const servingsInput = document.getElementById("servings-input");
+  const list = document.getElementById("ingredients-list");
+  const checkedItems = new Set();
 
-  function prikaziSastojke() {
-    let porcije = parseInt(unosPorcija.value, 10);
-    if (isNaN(porcije) || porcije < 1) return;
-    porcije = Math.min(porcije, 50);
-    const faktor = porcije / r.porcije;
-    popis.innerHTML = r.sastojci
+  function renderIngredients() {
+    let servings = parseInt(servingsInput.value, 10);
+    if (isNaN(servings) || servings < 1) return;
+    servings = Math.min(servings, 50);
+    const factor = servings / r.servings;
+    list.innerHTML = r.ingredients
       .map(
-        (s, i) => `<li data-i="${i}" class="${oznaceni.has(i) ? "oznaceno" : ""}">
-          <span class="kolicina">${formatKolicina(s.kolicina * faktor)} ${s.jedinica}</span> ${s.naziv}</li>`
+        (ing, i) => `<li data-i="${i}" class="${checkedItems.has(i) ? "checked" : ""}">
+          <span class="quantity">${formatAmount(ing.amount * factor)} ${ing.unit}</span> ${ing.name}</li>`
       )
       .join("");
   }
 
-  function promijeniPorcije(za) {
-    const nova = Math.min(50, Math.max(1, (parseInt(unosPorcija.value, 10) || r.porcije) + za));
-    unosPorcija.value = nova;
-    prikaziSastojke();
+  function changeServings(delta) {
+    const next = Math.min(50, Math.max(1, (parseInt(servingsInput.value, 10) || r.servings) + delta));
+    servingsInput.value = next;
+    renderIngredients();
   }
 
-  document.getElementById("manje-porcija").addEventListener("click", () => promijeniPorcije(-1));
-  document.getElementById("vise-porcija").addEventListener("click", () => promijeniPorcije(1));
-  unosPorcija.addEventListener("input", prikaziSastojke);
-  unosPorcija.addEventListener("change", () => {
-    if (!(parseInt(unosPorcija.value, 10) >= 1)) unosPorcija.value = r.porcije;
-    prikaziSastojke();
+  document.getElementById("fewer-servings").addEventListener("click", () => changeServings(-1));
+  document.getElementById("more-servings").addEventListener("click", () => changeServings(1));
+  servingsInput.addEventListener("input", renderIngredients);
+  servingsInput.addEventListener("change", () => {
+    if (!(parseInt(servingsInput.value, 10) >= 1)) servingsInput.value = r.servings;
+    renderIngredients();
   });
 
-  popis.addEventListener("click", (e) => {
+  list.addEventListener("click", (e) => {
     const li = e.target.closest("li");
     if (!li) return;
     const i = Number(li.dataset.i);
-    if (oznaceni.has(i)) oznaceni.delete(i);
-    else oznaceni.add(i);
-    li.classList.toggle("oznaceno");
+    if (checkedItems.has(i)) checkedItems.delete(i);
+    else checkedItems.add(i);
+    li.classList.toggle("checked");
   });
 
-  prikaziSastojke();
+  renderIngredients();
 
   // --- označavanje koraka i traka napretka ---
-  const postupak = document.getElementById("postupak");
-  const traka = document.getElementById("napredak-traka");
-  const tekstNapretka = document.getElementById("napredak-tekst");
+  const steps = document.getElementById("steps");
+  const progressBar = document.getElementById("progress-bar");
+  const progressText = document.getElementById("progress-text");
 
-  function oznaciKorak(li) {
-    li.classList.toggle("gotovo");
-    const ukupno = r.postupak.length;
-    const gotovo = postupak.querySelectorAll(".gotovo").length;
-    traka.style.width = `${(gotovo / ukupno) * 100}%`;
-    tekstNapretka.textContent = gotovo === 0 ? "💡 Klikni korak kad ga završiš." : `Završeno ${gotovo} od ${ukupno} koraka`;
-    if (gotovo === ukupno) obavijest("Sve gotovo – dobar tek! 🎉");
+  function toggleStep(li) {
+    li.classList.toggle("done");
+    const total = r.steps.length;
+    const done = steps.querySelectorAll(".done").length;
+    progressBar.style.width = `${(done / total) * 100}%`;
+    progressText.innerHTML = done === 0 ? `${icon("light-bulb")} Klikni korak kad ga završiš.` : `Završeno ${done} od ${total} koraka`;
+    if (done === total) showToast(`Sve gotovo – dobar tek! ${icon("party")}`);
   }
-  postupak.addEventListener("click", (e) => {
+  steps.addEventListener("click", (e) => {
     const li = e.target.closest("li");
-    if (li) oznaciKorak(li);
+    if (li) toggleStep(li);
   });
-  postupak.addEventListener("keydown", (e) => {
+  steps.addEventListener("keydown", (e) => {
     if ((e.key === "Enter" || e.key === " ") && e.target.matches("li")) {
       e.preventDefault();
-      oznaciKorak(e.target);
+      toggleStep(e.target);
     }
   });
 
   // --- dodavanje u planer ---
-  document.getElementById("dodaj-u-planer").addEventListener("click", () => {
-    const dan = document.getElementById("planer-dan").value;
-    dodajUPlaner(dan, r.id);
-    obavijest(`Dodano u planer: ${dan} 📅`);
+  document.getElementById("add-to-planner").addEventListener("click", () => {
+    const day = document.getElementById("planner-day").value;
+    addToPlanner(day, r.id);
+    showToast(`Dodano u planer: ${day} ${icon("calendar")}`);
   });
 
   // --- slični recepti ---
-  const slicni = RECEPTI.filter((x) => x.kategorija === r.kategorija && x.id !== r.id).slice(0, 3);
-  const mrezaSlicnih = document.getElementById("slicni-mreza");
-  slicni.forEach((x) => mrezaSlicnih.appendChild(kreirajKarticu(x)));
-  document.getElementById("slicni-sekcija").hidden = slicni.length === 0;
+  const similar = RECIPES.filter((x) => x.category === r.category && x.id !== r.id).slice(0, 3);
+  const similarGrid = document.getElementById("similar-grid");
+  similar.forEach((x) => similarGrid.appendChild(createCard(x)));
+  document.getElementById("similar-section").hidden = similar.length === 0;
 }
 
 /* =========================================================
    PLANER OBROKA I POPIS ZA KUPNJU
    ========================================================= */
-function inicijalizirajPlaner() {
-  const forma = document.getElementById("planer-forma");
-  const odabirRecepta = document.getElementById("planer-recept");
-  const odabirDana = document.getElementById("planer-dan");
-  const tjedan = document.getElementById("tjedan");
-  const popisKupnje = document.getElementById("popis-kupnje");
-  const brojacKupnje = document.getElementById("brojac-kupnje");
-  const ocisti = document.getElementById("ocisti-planer");
+function initPlanner() {
+  const form = document.getElementById("planner-form");
+  const recipeSelect = document.getElementById("planner-recipe");
+  const daySelect = document.getElementById("planner-day");
+  const week = document.getElementById("week");
+  const shoppingList = document.getElementById("shopping-list");
+  const shoppingCount = document.getElementById("shopping-count");
+  const clearButton = document.getElementById("clear-planner");
 
-  RECEPTI.forEach((r) => odabirRecepta.add(new Option(`${r.emoji} ${r.naziv}`, r.id)));
-  DANI.forEach((d) => odabirDana.add(new Option(d, d)));
+  RECIPES.forEach((r) => recipeSelect.add(new Option(`${r.emoji} ${r.name}`, r.id)));
+  DAYS.forEach((d) => daySelect.add(new Option(d, d)));
 
-  function prikaziTjedan() {
-    const planer = dohvatiPlaner();
-    tjedan.innerHTML = "";
-    DANI.forEach((dan) => {
-      const stupac = document.createElement("div");
-      stupac.className = "dan";
-      const stavke = planer[dan]
+  function renderWeek() {
+    const planner = getPlanner();
+    week.innerHTML = "";
+    DAYS.forEach((day) => {
+      const column = document.createElement("div");
+      column.className = "day";
+      const items = planner[day]
         .map((id, i) => {
-          const r = pronadiRecept(id);
+          const r = findRecipe(id);
           if (!r) return "";
-          return `<li><a href="recept.html?id=${r.id}">${r.emoji} ${r.naziv}</a>
-                  <button class="ukloni" data-dan="${dan}" data-i="${i}" aria-label="Ukloni ${r.naziv}">✕</button></li>`;
+          return `<li><a href="recipe.html?id=${r.id}">${icon(r.icon)} ${r.name}</a>
+                  <button class="remove" data-day="${day}" data-i="${i}" aria-label="Ukloni ${r.name}">✕</button></li>`;
         })
         .join("");
-      stupac.innerHTML = `<h3>${dan}</h3>${stavke ? `<ul>${stavke}</ul>` : '<p class="dan-prazno">Nema obroka</p>'}`;
-      tjedan.appendChild(stupac);
+      column.innerHTML = `<h3>${day}</h3>${items ? `<ul>${items}</ul>` : '<p class="day-empty">Nema obroka</p>'}`;
+      week.appendChild(column);
     });
-    prikaziPopisKupnje(planer);
+    renderShoppingList(planner);
   }
 
-  function prikaziPopisKupnje(planer) {
+  function renderShoppingList(planner) {
     // zbrajanje istih sastojaka iz svih planiranih recepata
-    const zbroj = {};
-    Object.values(planer)
+    const totals = {};
+    Object.values(planner)
       .flat()
       .forEach((id) => {
-        const r = pronadiRecept(id);
+        const r = findRecipe(id);
         if (!r) return;
-        r.sastojci.forEach((s) => {
-          const kljuc = `${s.naziv}|${s.jedinica}`;
-          zbroj[kljuc] = (zbroj[kljuc] || 0) + s.kolicina;
+        r.ingredients.forEach((ing) => {
+          const key = `${ing.name}|${ing.unit}`;
+          totals[key] = (totals[key] || 0) + ing.amount;
         });
       });
 
-    const stavke = Object.entries(zbroj).sort(([a], [b]) => a.localeCompare(b, "hr"));
-    const kupljeno = ucitaj("kupljeno", []);
+    const items = Object.entries(totals).sort(([a], [b]) => a.localeCompare(b, "hr"));
+    const purchased = load("purchased", []);
 
-    if (stavke.length === 0) {
-      popisKupnje.innerHTML = '<li class="dan-prazno">Dodaj recepte u planer i popis će se složiti sam.</li>';
-      brojacKupnje.textContent = "";
+    if (items.length === 0) {
+      shoppingList.innerHTML = '<li class="day-empty">Dodaj recepte u planer i popis će se složiti sam.</li>';
+      shoppingCount.textContent = "";
       return;
     }
 
-    popisKupnje.innerHTML = stavke
-      .map(([kljuc, kolicina]) => {
-        const [naziv, jedinica] = kljuc.split("|");
-        const oznaceno = kupljeno.includes(kljuc);
-        return `<li class="${oznaceno ? "kupljeno" : ""}">
-          <label><input type="checkbox" data-kljuc="${kljuc}" ${oznaceno ? "checked" : ""}>
-          <span><strong>${formatKolicina(kolicina)} ${jedinica}</strong> ${naziv}</span></label></li>`;
+    shoppingList.innerHTML = items
+      .map(([key, amount]) => {
+        const [name, unit] = key.split("|");
+        const isPurchased = purchased.includes(key);
+        return `<li class="${isPurchased ? "purchased" : ""}">
+          <label><input type="checkbox" data-key="${key}" ${isPurchased ? "checked" : ""}>
+          <span><strong>${formatAmount(amount)} ${unit}</strong> ${name}</span></label></li>`;
       })
       .join("");
-    azurirajBrojacKupnje();
+    updateShoppingCount();
   }
 
-  function azurirajBrojacKupnje() {
-    const ukupno = popisKupnje.querySelectorAll("input").length;
-    const kupljeno = popisKupnje.querySelectorAll("input:checked").length;
-    brojacKupnje.textContent = `Kupljeno ${kupljeno} od ${ukupno}`;
+  function updateShoppingCount() {
+    const total = shoppingList.querySelectorAll("input").length;
+    const purchased = shoppingList.querySelectorAll("input:checked").length;
+    shoppingCount.textContent = `Kupljeno ${purchased} od ${total}`;
   }
 
-  forma.addEventListener("submit", (e) => {
+  form.addEventListener("submit", (e) => {
     e.preventDefault();
-    dodajUPlaner(odabirDana.value, odabirRecepta.value);
-    const r = pronadiRecept(odabirRecepta.value);
-    obavijest(`${r.naziv} → ${odabirDana.value}`);
-    prikaziTjedan();
+    addToPlanner(daySelect.value, recipeSelect.value);
+    const r = findRecipe(recipeSelect.value);
+    showToast(`${r.name} → ${daySelect.value}`);
+    renderWeek();
   });
 
-  tjedan.addEventListener("click", (e) => {
-    const gumb = e.target.closest(".ukloni");
-    if (!gumb) return;
-    const planer = dohvatiPlaner();
-    planer[gumb.dataset.dan].splice(Number(gumb.dataset.i), 1);
-    spremi("planer", planer);
-    prikaziTjedan();
+  week.addEventListener("click", (e) => {
+    const button = e.target.closest(".remove");
+    if (!button) return;
+    const planner = getPlanner();
+    planner[button.dataset.day].splice(Number(button.dataset.i), 1);
+    save("planner", planner);
+    renderWeek();
   });
 
-  popisKupnje.addEventListener("change", (e) => {
+  shoppingList.addEventListener("change", (e) => {
     if (e.target.type !== "checkbox") return;
-    const kljuc = e.target.dataset.kljuc;
-    let kupljeno = ucitaj("kupljeno", []);
-    kupljeno = e.target.checked ? [...kupljeno, kljuc] : kupljeno.filter((k) => k !== kljuc);
-    spremi("kupljeno", kupljeno);
-    e.target.closest("li").classList.toggle("kupljeno", e.target.checked);
-    azurirajBrojacKupnje();
+    const key = e.target.dataset.key;
+    let purchased = load("purchased", []);
+    purchased = e.target.checked ? [...purchased, key] : purchased.filter((k) => k !== key);
+    save("purchased", purchased);
+    e.target.closest("li").classList.toggle("purchased", e.target.checked);
+    updateShoppingCount();
   });
 
-  ocisti.addEventListener("click", () => {
+  clearButton.addEventListener("click", () => {
     if (!confirm("Želiš li obrisati cijeli tjedni plan?")) return;
-    spremi("planer", {});
-    spremi("kupljeno", []);
-    prikaziTjedan();
-    obavijest("Planer je očišćen");
+    save("planner", {});
+    save("purchased", []);
+    renderWeek();
+    showToast("Planer je očišćen");
   });
 
-  prikaziTjedan();
+  renderWeek();
 }
 
 /* =========================================================
    KONTAKT – provjera obrasca i česta pitanja
    ========================================================= */
-function inicijalizirajKontakt() {
-  const forma = document.getElementById("kontakt-forma");
-  const ime = document.getElementById("ime");
+function initContact() {
+  const form = document.getElementById("contact-form");
+  const name = document.getElementById("name");
   const email = document.getElementById("email");
-  const tema = document.getElementById("tema");
-  const poljeRecept = document.getElementById("polje-recept");
-  const nazivRecepta = document.getElementById("naziv-recepta");
-  const poruka = document.getElementById("poruka");
-  const brojZnakova = document.getElementById("broj-znakova");
-  const privola = document.getElementById("privola");
-  const uspjeh = document.getElementById("uspjeh");
+  const topic = document.getElementById("topic");
+  const recipeField = document.getElementById("recipe-field");
+  const recipeName = document.getElementById("recipe-name");
+  const message = document.getElementById("message");
+  const charCount = document.getElementById("char-count");
+  const consent = document.getElementById("consent");
+  const success = document.getElementById("success");
 
   // dodatno polje prikazuje se samo kad korisnik šalje recept
-  tema.addEventListener("change", () => {
-    poljeRecept.hidden = tema.value !== "recept";
+  topic.addEventListener("change", () => {
+    recipeField.hidden = topic.value !== "recipe";
   });
 
   // brojač znakova poruke
-  poruka.addEventListener("input", () => {
-    const n = poruka.value.length;
-    brojZnakova.textContent = `${n} / 500`;
-    brojZnakova.classList.toggle("upozorenje", n > 450);
+  message.addEventListener("input", () => {
+    const n = message.value.length;
+    charCount.textContent = `${n} / 500`;
+    charCount.classList.toggle("warning", n > 450);
   });
 
-  function postaviGresku(polje, tekst) {
-    const greska = polje.closest(".polje").querySelector(".greska");
-    greska.textContent = tekst;
-    polje.classList.toggle("neispravno", Boolean(tekst));
-    polje.setAttribute("aria-invalid", Boolean(tekst));
+  function setError(field, text) {
+    const error = field.closest(".field").querySelector(".error");
+    error.textContent = text;
+    field.classList.toggle("invalid", Boolean(text));
+    field.setAttribute("aria-invalid", Boolean(text));
   }
 
   // greška nestaje čim korisnik ispravi polje
-  forma.querySelectorAll("input, textarea, select").forEach((polje) => {
-    polje.addEventListener("input", () => postaviGresku(polje, ""));
-    polje.addEventListener("change", () => postaviGresku(polje, ""));
+  form.querySelectorAll("input, textarea, select").forEach((field) => {
+    field.addEventListener("input", () => setError(field, ""));
+    field.addEventListener("change", () => setError(field, ""));
   });
 
-  forma.addEventListener("submit", (e) => {
+  form.addEventListener("submit", (e) => {
     e.preventDefault();
-    let ispravno = true;
-    const greska = (polje, tekst) => {
-      postaviGresku(polje, tekst);
-      ispravno = false;
+    let isValid = true;
+    const fail = (field, text) => {
+      setError(field, text);
+      isValid = false;
     };
 
-    if (ime.value.trim().length < 2) greska(ime, "Upiši ime (najmanje 2 znaka).");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim())) greska(email, "Upiši ispravnu e-mail adresu.");
-    if (!tema.value) greska(tema, "Odaberi temu poruke.");
-    if (!poljeRecept.hidden && nazivRecepta.value.trim().length < 2) greska(nazivRecepta, "Upiši naziv recepta.");
-    if (poruka.value.trim().length < 10) greska(poruka, "Poruka mora imati najmanje 10 znakova.");
-    if (!privola.checked) greska(privola, "Potrebna je tvoja privola.");
+    if (name.value.trim().length < 2) fail(name, "Upiši ime (najmanje 2 znaka).");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim())) fail(email, "Upiši ispravnu e-mail adresu.");
+    if (!topic.value) fail(topic, "Odaberi temu poruke.");
+    if (!recipeField.hidden && recipeName.value.trim().length < 2) fail(recipeName, "Upiši naziv recepta.");
+    if (message.value.trim().length < 10) fail(message, "Poruka mora imati najmanje 10 znakova.");
+    if (!consent.checked) fail(consent, "Potrebna je tvoja privola.");
 
-    if (!ispravno) {
-      forma.querySelector(".neispravno").focus();
+    if (!isValid) {
+      form.querySelector(".invalid").focus();
       return;
     }
 
-    document.getElementById("uspjeh-ime").textContent = ime.value.trim();
-    forma.reset();
-    poljeRecept.hidden = true;
-    brojZnakova.textContent = "0 / 500";
-    forma.hidden = true;
-    uspjeh.hidden = false;
+    document.getElementById("success-name").textContent = name.value.trim();
+    form.reset();
+    recipeField.hidden = true;
+    charCount.textContent = "0 / 500";
+    form.hidden = true;
+    success.hidden = false;
   });
 
-  document.getElementById("nova-poruka").addEventListener("click", () => {
-    uspjeh.hidden = true;
-    forma.hidden = false;
-    ime.focus();
+  document.getElementById("new-message").addEventListener("click", () => {
+    success.hidden = true;
+    form.hidden = false;
+    name.focus();
   });
 
   // česta pitanja – harmonika
-  document.querySelectorAll(".pitanje-gumb").forEach((gumb) => {
-    gumb.addEventListener("click", () => {
-      const odgovor = document.getElementById(gumb.getAttribute("aria-controls"));
-      const otvoreno = gumb.getAttribute("aria-expanded") === "true";
-      gumb.setAttribute("aria-expanded", !otvoreno);
-      odgovor.hidden = otvoreno;
+  document.querySelectorAll(".question-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      const answer = document.getElementById(button.getAttribute("aria-controls"));
+      const isOpen = button.getAttribute("aria-expanded") === "true";
+      button.setAttribute("aria-expanded", !isOpen);
+      answer.hidden = isOpen;
     });
   });
 }
 
 /* ---------- Pokretanje ---------- */
-inicijalizirajTemu();
-inicijalizirajNavigaciju();
+initTheme();
+initNavigation();
 
-const inicijalizacije = {
-  pocetna: inicijalizirajPocetnu,
-  recepti: inicijalizirajRecepte,
-  recept: inicijalizirajRecept,
-  planer: inicijalizirajPlaner,
-  kontakt: inicijalizirajKontakt
+const pageInits = {
+  home: initHome,
+  recipes: initRecipes,
+  recipe: initRecipe,
+  planner: initPlanner,
+  contact: initContact
 };
-const stranica = document.body.dataset.stranica;
-if (inicijalizacije[stranica]) inicijalizacije[stranica]();
+const page = document.body.dataset.page;
+if (pageInits[page]) pageInits[page]();

@@ -2,23 +2,23 @@
    CHATBOT "KUHAR BOT"
    Vrsta: chatbot temeljen na pravilima i prepoznavanju namjera.
    Dodatne funkcionalnosti:
-   1) odgovore oblikuje iz podataka web sjedišta (podaci.js)
+   1) odgovore oblikuje iz podataka web sjedišta (data.js)
    2) pamti kontekst razgovora (zadnji recept, zadnji filteri)
       i čuva razgovor u localStorage
-   Koristi funkcije iz main.js (normaliziraj, pronadiRecept, ...).
+   Koristi funkcije iz main.js (normalize, findRecipe, ...).
    ========================================================= */
 "use strict";
 
 (function () {
-  const IME_BOTA = "Kuhar Bot";
-  const KLJUC_POVIJEST = "chat-povijest";
-  const KLJUC_KONTEKST = "chat-kontekst";
-  const PO_STRANICI = 3; // koliko recepata bot predlaže odjednom
+  const BOT_NAME = "Kuhar Bot";
+  const HISTORY_KEY = "chat-history";
+  const CONTEXT_KEY = "chat-context";
+  const PAGE_SIZE = 3; // koliko recepata bot predlaže odjednom
 
   /* ---------- Rječnici za prepoznavanje ---------- */
 
   // riječi koje nisu sastojci (da "kako" ne bi bilo "kakao" i sl.)
-  const STOP_RIJECI = new Set(
+  const STOP_WORDS = new Set(
     ("imam imamo imas ima sto mogu moze mozes skuhati kuhati skuham napraviti napravim pripremiti " +
       "od do nesto neko neki neku nesta recept recepte recepta recepti daj dajte mi me koji koja koje " +
       "jelo jela treba trebam sa za bez malo kako jos li je su se da ne to ovo onda samo ali bi bih " +
@@ -30,419 +30,419 @@
   );
 
   // dijelovi naziva sastojaka koji ne opisuju sam sastojak
-  const STOP_U_SASTOJCIMA = new Set(
+  const INGREDIENT_STOP_WORDS = new Set(
     "za ili kuhani kuhanje ribani mljeveno konzerva file namaz bijelo crno crveni zelena tamna suhe povrtni vinski mineralna".split(" ")
   );
 
-  const KATEGORIJE_KORIJENI = {
-    desert: ["desert", "slatk", "kolac", "poslastic"],
-    juha: ["juh"],
-    salata: ["salat"],
-    predjelo: ["predjel", "grickalic", "namaz"],
-    glavno: ["glavn", "rucak", "rucku", "vecer"]
+  const CATEGORY_ROOTS = {
+    dessert: ["desert", "slatk", "kolac", "poslastic"],
+    soup: ["juh"],
+    salad: ["salat"],
+    starter: ["predjel", "grickalic", "namaz"],
+    main: ["glavn", "rucak", "rucku", "vecer"]
   };
 
-  const BROJEVI = {
+  const NUMBER_WORDS = {
     jedan: 1, jednu: 1, jednog: 1, dva: 2, dvije: 2, dvoje: 2, tri: 3, troje: 3, cetiri: 4, cetvero: 4,
     pet: 5, petero: 5, sest: 6, sestero: 6, sedam: 7, osam: 8, devet: 9, deset: 10, dvanaest: 12
   };
 
   // za svaki recept skup "ključnih riječi" sastojaka, npr. "feta sir" -> feta, sir
-  const SASTOJCI_RECEPTA = new Map();
-  const SVI_SASTOJCI = new Set();
-  RECEPTI.forEach((r) => {
-    const skup = new Set();
-    r.sastojci.forEach((s) => {
-      normaliziraj(s.naziv)
+  const RECIPE_INGREDIENTS = new Map();
+  const ALL_INGREDIENTS = new Set();
+  RECIPES.forEach((r) => {
+    const set = new Set();
+    r.ingredients.forEach((ing) => {
+      normalize(ing.name)
         .split(/[^a-z]+/)
-        .filter((w) => w.length >= 3 && !STOP_U_SASTOJCIMA.has(w))
+        .filter((w) => w.length >= 3 && !INGREDIENT_STOP_WORDS.has(w))
         .forEach((w) => {
-          skup.add(w);
-          SVI_SASTOJCI.add(w);
+          set.add(w);
+          ALL_INGREDIENTS.add(w);
         });
     });
-    SASTOJCI_RECEPTA.set(r.id, [...skup]);
+    RECIPE_INGREDIENTS.set(r.id, [...set]);
   });
 
   /* ---------- Stanje ---------- */
 
-  const POCETNI_KONTEKST = { zadnjiRecept: null, ponudeni: [], rezultati: [], prikazano: 0, filteri: null, cekaDan: null };
-  let kontekst = Object.assign({}, POCETNI_KONTEKST, ucitaj(KLJUC_KONTEKST, {}));
-  let povijest = ucitaj(KLJUC_POVIJEST, []);
+  const INITIAL_CONTEXT = { lastRecipe: null, offered: [], results: [], shown: 0, filters: null, awaitingDay: null };
+  let context = Object.assign({}, INITIAL_CONTEXT, load(CONTEXT_KEY, {}));
+  let history = load(HISTORY_KEY, []);
 
   // ako je korisnik na stranici recepta, bot zna o kojem je receptu riječ
-  if (document.body.dataset.stranica === "recept" && pronadiRecept(dohvatiParametar("id"))) {
-    kontekst.zadnjiRecept = Number(dohvatiParametar("id"));
+  if (document.body.dataset.page === "recipe" && findRecipe(getParam("id"))) {
+    context.lastRecipe = Number(getParam("id"));
   }
 
   // "za ponedjeljak", "za srijedu", "za nedjelju"
-  const DANI_AKUZATIV = ["ponedjeljak", "utorak", "srijedu", "četvrtak", "petak", "subotu", "nedjelju"];
-  const zaDan = (dan) => DANI_AKUZATIV[DANI.indexOf(dan)];
+  const DAYS_ACCUSATIVE = ["ponedjeljak", "utorak", "srijedu", "četvrtak", "petak", "subotu", "nedjelju"];
+  const forDay = (day) => DAYS_ACCUSATIVE[DAYS.indexOf(day)];
 
   /* ---------- Pomoćne funkcije ---------- */
 
   // dvije riječi se "podudaraju" ako dijele dovoljno dug početak (jaja/jaje, sir/sira, tuna/tunu)
-  function podudara(a, b) {
+  function wordsMatch(a, b) {
     const n = Math.min(a.length, b.length);
     let i = 0;
     while (i < n && a[i] === b[i]) i++;
     return i >= Math.max(3, n - 1);
   }
 
-  function receptImaSastojak(r, rijec) {
-    return SASTOJCI_RECEPTA.get(r.id).some((k) => podudara(rijec, k));
+  function recipeHasIngredient(r, word) {
+    return RECIPE_INGREDIENTS.get(r.id).some((k) => wordsMatch(word, k));
   }
 
-  function escapeHtml(tekst) {
+  function escapeHtml(text) {
     const div = document.createElement("div");
-    div.textContent = tekst;
+    div.textContent = text;
     return div.innerHTML;
   }
 
-  function poveznica(r) {
-    return `<a href="recept.html?id=${r.id}">${r.emoji} ${r.naziv}</a>`;
+  function recipeLink(r) {
+    return `<a href="recipe.html?id=${r.id}">${icon(r.icon)} ${r.name}</a>`;
   }
 
-  function pronadiSpomenutiRecept(n) {
-    return RECEPTI.find((r) => r.kljucne.some((k) => k.split("+").every((dio) => n.includes(dio))));
+  function findMentionedRecipe(n) {
+    return RECIPES.find((r) => r.keywords.some((k) => k.split("+").every((part) => n.includes(part))));
   }
 
-  function pronadiDan(n) {
-    if (/\bdanas\b/.test(n)) return DANI[(new Date().getDay() + 6) % 7];
-    if (/\bsutra\b/.test(n)) return DANI[(new Date().getDay() + 7) % 7];
-    const uzorci = [/\bponedjelj/, /\butor/, /\bsrijed/, /\bcetvrt/, /\bpet(ak|ka|ku)\b/, /\bsubot/, /\bnedjelj/];
-    const i = uzorci.findIndex((u) => u.test(n));
-    return i >= 0 ? DANI[i] : null;
+  function findDay(n) {
+    if (/\bdanas\b/.test(n)) return DAYS[(new Date().getDay() + 6) % 7];
+    if (/\bsutra\b/.test(n)) return DAYS[(new Date().getDay() + 7) % 7];
+    const patterns = [/\bponedjelj/, /\butor/, /\bsrijed/, /\bcetvrt/, /\bpet(ak|ka|ku)\b/, /\bsubot/, /\bnedjelj/];
+    const i = patterns.findIndex((p) => p.test(n));
+    return i >= 0 ? DAYS[i] : null;
   }
 
   /* ---------- Gradnja odgovora iz podataka ---------- */
 
-  function sazetakRecepta(r) {
+  function recipeSummary(r) {
     return {
-      html: `<strong>${poveznica(r)}</strong><br>${r.opis}<br>
-             <small>⏱ ${r.vrijeme} min${r.napomena ? " " + r.napomena : ""} · ${r.tezina} · ${r.porcije} ${mnozina(r.porcije, "porcija", "porcije", "porcija")} · ${r.kalorije} kcal</small>`,
-      cipovi: ["Kako se radi?", "Koji su sastojci?", "Dodaj u planer"]
+      html: `<strong>${recipeLink(r)}</strong><br>${r.description}<br>
+             <small>${icon("stopwatch")} ${r.time} min${r.note ? " " + r.note : ""} · ${r.difficulty} · ${r.servings} ${plural(r.servings, "porcija", "porcije", "porcija")} · ${r.calories} kcal</small>`,
+      chips: ["Kako se radi?", "Koji su sastojci?", "Dodaj u planer"]
     };
   }
 
-  function sastojciRecepta(r, porcije) {
-    const faktor = porcije / r.porcije;
-    const popis = r.sastojci
-      .map((s) => `<li>${formatKolicina(s.kolicina * faktor)} ${s.jedinica} ${s.naziv}</li>`)
+  function recipeIngredients(r, servings) {
+    const factor = servings / r.servings;
+    const list = r.ingredients
+      .map((ing) => `<li>${formatAmount(ing.amount * factor)} ${ing.unit} ${ing.name}</li>`)
       .join("");
     return {
-      html: `Za recept <strong>${r.naziv}</strong> (${porcije} ${mnozina(porcije, "porcija", "porcije", "porcija")}) trebaš:<ul>${popis}</ul>`,
-      cipovi: ["Kako se radi?", "Za 2 osobe", "Dodaj u planer"]
+      html: `Za recept <strong>${r.name}</strong> (${servings} ${plural(servings, "porcija", "porcije", "porcija")}) trebaš:<ul>${list}</ul>`,
+      chips: ["Kako se radi?", "Za 2 osobe", "Dodaj u planer"]
     };
   }
 
-  function postupakRecepta(r) {
+  function recipeSteps(r) {
     return {
-      html: `Evo postupka za recept <strong>${r.naziv}</strong>:<ol>${r.postupak.map((k) => `<li>${k}</li>`).join("")}</ol>
-             Cijeli recept s brojačem porcija: ${poveznica(r)}`,
-      cipovi: ["Koji su sastojci?", "Dodaj u planer", "Nešto drugo"]
+      html: `Evo postupka za recept <strong>${r.name}</strong>:<ol>${r.steps.map((s) => `<li>${s}</li>`).join("")}</ol>
+             Cijeli recept s brojačem porcija: ${recipeLink(r)}`,
+      chips: ["Koji su sastojci?", "Dodaj u planer", "Nešto drugo"]
     };
   }
 
-  function opisFiltera(f) {
-    const dijelovi = [];
-    if (f.kategorija) dijelovi.push(KATEGORIJE[f.kategorija].naziv.toLowerCase());
-    if (f.vege) dijelovi.push("vegetarijansko");
-    if (f.maxVrijeme) dijelovi.push(`do ${f.maxVrijeme} min`);
-    if (f.tezina) dijelovi.push("jednostavno");
-    if (f.sastojci.length) dijelovi.push("s: " + f.sastojci.map((s) => s.prikaz).join(", "));
-    if (f.iskljuci.length) dijelovi.push("bez: " + f.iskljuci.map((s) => s.prikaz).join(", "));
-    return dijelovi.join(" · ");
+  function describeFilters(f) {
+    const parts = [];
+    if (f.category) parts.push(CATEGORIES[f.category].name.toLowerCase());
+    if (f.veg) parts.push("vegetarijansko");
+    if (f.maxTime) parts.push(`do ${f.maxTime} min`);
+    if (f.difficulty) parts.push("jednostavno");
+    if (f.ingredients.length) parts.push("s: " + f.ingredients.map((i) => i.display).join(", "));
+    if (f.excluded.length) parts.push("bez: " + f.excluded.map((i) => i.display).join(", "));
+    return parts.join(" · ");
   }
 
-  function imaFiltera(f) {
-    return f.sastojci.length || f.iskljuci.length || f.kategorija || f.vege || f.maxVrijeme || f.tezina;
+  function hasFilters(f) {
+    return f.ingredients.length || f.excluded.length || f.category || f.veg || f.maxTime || f.difficulty;
   }
 
   // iz poruke izvlači sastojke, kategoriju, vrijeme, težinu i vegetarijansko
-  function izvuciFiltere(n, original) {
-    const rijeci = n.split(/[^a-z0-9]+/).filter(Boolean);
-    const izvorne = original.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
-    const f = { sastojci: [], iskljuci: [], kategorija: null, vege: false, maxVrijeme: null, tezina: null };
-    const iskoristene = new Set();
+  function extractFilters(n, original) {
+    const words = n.split(/[^a-z0-9]+/).filter(Boolean);
+    const originalWords = original.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+    const f = { ingredients: [], excluded: [], category: null, veg: false, maxTime: null, difficulty: null };
+    const used = new Set();
 
-    Object.entries(KATEGORIJE_KORIJENI).forEach(([kat, korijeni]) => {
-      rijeci.forEach((w) => {
-        if (korijeni.some((k) => w.startsWith(k))) {
-          f.kategorija = kat;
-          iskoristene.add(w);
+    Object.entries(CATEGORY_ROOTS).forEach(([cat, roots]) => {
+      words.forEach((w) => {
+        if (roots.some((root) => w.startsWith(root))) {
+          f.category = cat;
+          used.add(w);
         }
       });
     });
 
-    if (/vegetarij|bez mes|posn|vegan|\bvege\b/.test(n)) f.vege = true;
+    if (/vegetarij|bez mes|posn|vegan|\bvege\b/.test(n)) f.veg = true;
 
-    const minute = n.match(/(?:do|ispod|manje od|najvise)\s*(\d+)\s*min/);
-    const sati = n.match(/(?:do|ispod|manje od|najvise)\s*(\d+)\s*sat/);
-    if (minute) f.maxVrijeme = Number(minute[1]);
-    else if (sati) f.maxVrijeme = Number(sati[1]) * 60;
-    else if (/\bbrz|na brzinu|malo vremena|nemam (puno )?vremena|zurim/.test(n)) f.maxVrijeme = 20;
+    const minutes = n.match(/(?:do|ispod|manje od|najvise)\s*(\d+)\s*min/);
+    const hours = n.match(/(?:do|ispod|manje od|najvise)\s*(\d+)\s*sat/);
+    if (minutes) f.maxTime = Number(minutes[1]);
+    else if (hours) f.maxTime = Number(hours[1]) * 60;
+    else if (/\bbrz|na brzinu|malo vremena|nemam (puno )?vremena|zurim/.test(n)) f.maxTime = 20;
 
-    if (/\b(lak|jednostav|pocetni)/.test(n)) f.tezina = "Lako";
+    if (/\b(lak|jednostav|pocetni)/.test(n)) f.difficulty = "Lako";
 
-    rijeci.forEach((w, i) => {
-      if (w.length < 3 || STOP_RIJECI.has(w) || iskoristene.has(w)) return;
-      if (![...SVI_SASTOJCI].some((k) => podudara(w, k))) return;
-      const sastojak = { kljuc: w, prikaz: izvorne[i] || w };
-      const iza = rijeci[i - 1] === "bez" || (rijeci[i - 1] === "i" && rijeci[i - 2] === "bez");
-      if (iza) {
-        if (!/^mes/.test(w)) f.iskljuci.push(sastojak);
+    words.forEach((w, i) => {
+      if (w.length < 3 || STOP_WORDS.has(w) || used.has(w)) return;
+      if (![...ALL_INGREDIENTS].some((k) => wordsMatch(w, k))) return;
+      const ingredient = { key: w, display: originalWords[i] || w };
+      const afterWithout = words[i - 1] === "bez" || (words[i - 1] === "i" && words[i - 2] === "bez");
+      if (afterWithout) {
+        if (!/^mes/.test(w)) f.excluded.push(ingredient);
       } else {
-        f.sastojci.push(sastojak);
+        f.ingredients.push(ingredient);
       }
     });
     return f;
   }
 
-  function pretrazi(f) {
-    return RECEPTI.map((r) => ({
+  function search(f) {
+    return RECIPES.map((r) => ({
       id: r.id,
-      pogoci: f.sastojci.filter((s) => receptImaSastojak(r, s.kljuc)).length
+      hits: f.ingredients.filter((i) => recipeHasIngredient(r, i.key)).length
     }))
-      .filter(({ id, pogoci }) => {
-        const r = pronadiRecept(id);
-        if (f.sastojci.length && pogoci === 0) return false;
-        if (f.kategorija && r.kategorija !== f.kategorija) return false;
-        if (f.vege && !r.vegetarijansko) return false;
-        if (f.maxVrijeme && r.vrijeme > f.maxVrijeme) return false;
-        if (f.tezina && r.tezina !== f.tezina) return false;
-        if (f.iskljuci.some((s) => receptImaSastojak(r, s.kljuc))) return false;
+      .filter(({ id, hits }) => {
+        const r = findRecipe(id);
+        if (f.ingredients.length && hits === 0) return false;
+        if (f.category && r.category !== f.category) return false;
+        if (f.veg && !r.vegetarian) return false;
+        if (f.maxTime && r.time > f.maxTime) return false;
+        if (f.difficulty && r.difficulty !== f.difficulty) return false;
+        if (f.excluded.some((i) => recipeHasIngredient(r, i.key))) return false;
         return true;
       })
-      .sort((a, b) => b.pogoci - a.pogoci || pronadiRecept(a.id).vrijeme - pronadiRecept(b.id).vrijeme);
+      .sort((a, b) => b.hits - a.hits || findRecipe(a.id).time - findRecipe(b.id).time);
   }
 
-  function prikaziRezultate(uvod) {
-    const dio = kontekst.rezultati.slice(kontekst.prikazano, kontekst.prikazano + PO_STRANICI);
-    kontekst.prikazano += dio.length;
-    const brojSastojaka = kontekst.filteri ? kontekst.filteri.sastojci.length : 0;
+  function showResults(intro) {
+    const page = context.results.slice(context.shown, context.shown + PAGE_SIZE);
+    context.shown += page.length;
+    const ingredientCount = context.filters ? context.filters.ingredients.length : 0;
 
-    const stavke = dio
-      .map(({ id, pogoci }) => {
-        const r = pronadiRecept(id);
-        const sastojciInfo = brojSastojaka ? ` · tvojih sastojaka: ${pogoci}/${brojSastojaka}` : "";
-        const mini = r.slika ? `<img src="${r.slika}" alt="" class="chat-mini">` : `<span class="chat-mini">${r.emoji}</span>`;
-        return `<li>${mini}<div>${poveznica(r)}<br><small>⏱ ${r.vrijeme} min · ${r.tezina}${sastojciInfo}</small></div></li>`;
+    const items = page
+      .map(({ id, hits }) => {
+        const r = findRecipe(id);
+        const ingredientInfo = ingredientCount ? ` · tvojih sastojaka: ${hits}/${ingredientCount}` : "";
+        const thumb = r.image ? `<img src="${r.image}" alt="" class="chat-mini">` : `<span class="chat-mini">${icon(r.icon)}</span>`;
+        return `<li>${thumb}<div>${recipeLink(r)}<br><small>${icon("stopwatch")} ${r.time} min · ${r.difficulty}${ingredientInfo}</small></div></li>`;
       })
       .join("");
 
     // ako je ponuđen samo jedan recept, on postaje "trenutni"; inače bot pita na koji se misli
-    kontekst.zadnjiRecept = kontekst.rezultati.length === 1 ? dio[0].id : null;
-    kontekst.ponudeni = dio.map((x) => x.id);
+    context.lastRecipe = context.results.length === 1 ? page[0].id : null;
+    context.offered = page.map((x) => x.id);
 
-    const imaJos = kontekst.prikazano < kontekst.rezultati.length;
-    const cipovi = dio.map(({ id }) => pronadiRecept(id).naziv);
-    if (imaJos) cipovi.push("Još prijedloga");
+    const hasMore = context.shown < context.results.length;
+    const chips = page.map(({ id }) => findRecipe(id).name);
+    if (hasMore) chips.push("Još prijedloga");
 
     return {
-      html: `${uvod}<ul class="chat-recepti">${stavke}</ul>${
-        imaJos ? "Imam još prijedloga ako želiš." : "Klikni naziv recepta za više detalja."
+      html: `${intro}<ul class="chat-recipes">${items}</ul>${
+        hasMore ? "Imam još prijedloga ako želiš." : "Klikni naziv recepta za više detalja."
       }`,
-      cipovi
+      chips
     };
   }
 
-  function prikaziPlaner() {
-    const planer = dohvatiPlaner();
-    const dani = DANI.filter((d) => planer[d].length);
-    if (!dani.length) {
+  function showPlanner() {
+    const planner = getPlanner();
+    const days = DAYS.filter((d) => planner[d].length);
+    if (!days.length) {
       return {
-        html: 'Planer je još prazan. Reci mi npr. <em>„dodaj rižoto u planer za petak“</em> ili otvori <a href="planer.html">planer obroka</a>.',
-        cipovi: ["Iznenadi me", "Brzi ručak"]
+        html: 'Planer je još prazan. Reci mi npr. <em>„dodaj rižoto u planer za petak“</em> ili otvori <a href="planner.html">planer obroka</a>.',
+        chips: ["Iznenadi me", "Brzi ručak"]
       };
     }
-    const popis = dani
-      .map((d) => `<li><strong>${d}:</strong> ${planer[d].map((id) => poveznica(pronadiRecept(id))).join(", ")}</li>`)
+    const list = days
+      .map((d) => `<li><strong>${d}:</strong> ${planner[d].map((id) => recipeLink(findRecipe(id))).join(", ")}</li>`)
       .join("");
     return {
-      html: `Ovo je tvoj plan za tjedan:<ul>${popis}</ul>Popis za kupnju složen je na stranici <a href="planer.html">Planer obroka</a>.`
+      html: `Ovo je tvoj plan za tjedan:<ul>${list}</ul>Popis za kupnju složen je na stranici <a href="planner.html">Planer obroka</a>.`
     };
   }
 
   /* ---------- Glavna logika: prepoznavanje namjere ---------- */
 
-  function obradi(poruka) {
-    const n = normaliziraj(poruka).trim();
-    const brojRijeci = n.split(/\s+/).filter(Boolean).length;
-    const spomenuti = pronadiSpomenutiRecept(n);
-    const dan = pronadiDan(n);
+  function respond(message) {
+    const n = normalize(message).trim();
+    const wordCount = n.split(/\s+/).filter(Boolean).length;
+    const mentioned = findMentionedRecipe(n);
+    const day = findDay(n);
 
     // 1. bot je pitao za koji dan – korisnik odgovara danom
-    if (kontekst.cekaDan) {
-      const r = pronadiRecept(kontekst.cekaDan);
-      kontekst.cekaDan = null;
-      if (dan && r) {
-        dodajUPlaner(dan, r.id);
+    if (context.awaitingDay) {
+      const r = findRecipe(context.awaitingDay);
+      context.awaitingDay = null;
+      if (day && r) {
+        addToPlanner(day, r.id);
         return {
-          html: `Gotovo! ✅ Recept <strong>${r.naziv}</strong> je u planeru za <strong>${zaDan(dan)}</strong>.`,
-          cipovi: ["Što imam u planeru?", "Nešto drugo"]
+          html: `Gotovo! ${icon("check")} Recept <strong>${r.name}</strong> je u planeru za <strong>${forDay(day)}</strong>.`,
+          chips: ["Što imam u planeru?", "Nešto drugo"]
         };
       }
-      if (/^(ne|nema|odustani|nista|ipak ne)\b/.test(n)) return { html: "U redu, ništa nisam dodao. 🙂" };
+      if (/^(ne|nema|odustani|nista|ipak ne)\b/.test(n)) return { html: `U redu, ništa nisam dodao. ${icon("smile")}` };
     }
 
     // 2. pozdrav, zahvala, pomoć
-    if (/^(bok|hej|hey|pozdrav|zdravo|cao|hello|hi|dobar (dan|jutro|vecer)|dobro jutro)\b/.test(n) && brojRijeci <= 4) {
+    if (/^(bok|hej|hey|pozdrav|zdravo|cao|hello|hi|dobar (dan|jutro|vecer)|dobro jutro)\b/.test(n) && wordCount <= 4) {
       return {
-        html: "Bok! 👋 Reci mi koje sastojke imaš ili kakvo jelo želiš, a ja ću pronaći recept.",
-        cipovi: ["Što mogu od jaja?", "Brzi vegetarijanski ručak", "Neki desert"]
+        html: `Bok! ${icon("wave")} Reci mi koje sastojke imaš ili kakvo jelo želiš, a ja ću pronaći recept.`,
+        chips: ["Što mogu od jaja?", "Brzi vegetarijanski ručak", "Neki desert"]
       };
     }
-    if (/\b(hvala|fala|zahvaljujem|super|odlicno)\b/.test(n) && brojRijeci <= 5) {
-      return { html: "Nema na čemu! Dobar tek! 😊", cipovi: ["Iznenadi me", "Neki desert"] };
+    if (/\b(hvala|fala|zahvaljujem|super|odlicno)\b/.test(n) && wordCount <= 5) {
+      return { html: `Nema na čemu! Dobar tek! ${icon("happy")}`, chips: ["Iznenadi me", "Neki desert"] };
     }
     if (/(sto (sve )?znas|sto mozes|pomoc|pomozi|kako radis|upute)/.test(n)) {
       return {
         html: `Mogu ti pomoći s ovim:
           <ul>
-            <li>🥕 pronaći recept prema sastojcima koje imaš (<em>„imam jaja i sir“</em>)</li>
-            <li>🌱 filtrirati po vrsti jela, vremenu i težini (<em>„brzi vegetarijanski ručak“</em>)</li>
-            <li>📖 objasniti postupak i sastojke (<em>„kako se radi tiramisu?“</em>)</li>
-            <li>⚖️ preračunati sastojke (<em>„za 6 osoba“</em>)</li>
-            <li>📅 dodati recept u planer (<em>„dodaj u planer za petak“</em>)</li>
+            <li>${icon("carrot")} pronaći recept prema sastojcima koje imaš (<em>„imam jaja i sir“</em>)</li>
+            <li>${icon("seedling")} filtrirati po vrsti jela, vremenu i težini (<em>„brzi vegetarijanski ručak“</em>)</li>
+            <li>${icon("book")} objasniti postupak i sastojke (<em>„kako se radi tiramisu?“</em>)</li>
+            <li>${icon("scale")} preračunati sastojke (<em>„za 6 osoba“</em>)</li>
+            <li>${icon("calendar")} dodati recept u planer (<em>„dodaj u planer za petak“</em>)</li>
           </ul>
           Pamtim o čemu pričamo, pa možeš pitati i <em>„a nešto bez mesa?“</em>`,
-        cipovi: ["Što mogu od jaja?", "Iznenadi me"]
+        chips: ["Što mogu od jaja?", "Iznenadi me"]
       };
     }
 
     // 3. favoriti i planer
     if (/(favorit|spremi recept|spremi ga|spremi to)/.test(n)) {
-      const r = spomenuti || pronadiRecept(kontekst.zadnjiRecept);
+      const r = mentioned || findRecipe(context.lastRecipe);
       if (!r) return { html: "Koji recept da spremim u favorite? Napiši mi njegov naziv." };
-      kontekst.zadnjiRecept = r.id;
-      if (!dohvatiFavorite().includes(r.id)) promijeniFavorit(r.id);
-      document.querySelectorAll(`.srce[data-id="${r.id}"]`).forEach((g) => azurirajSrce(g, true));
-      document.dispatchEvent(new CustomEvent("favoriti-promijenjeni"));
-      return { html: `❤️ Recept <strong>${r.naziv}</strong> je u tvojim favoritima.` };
+      context.lastRecipe = r.id;
+      if (!getFavorites().includes(r.id)) toggleFavorite(r.id);
+      document.querySelectorAll(`.heart[data-id="${r.id}"]`).forEach((b) => updateHeart(b, true));
+      document.dispatchEvent(new CustomEvent("favorites-changed"));
+      return { html: `${icon("heart")} Recept <strong>${r.name}</strong> je u tvojim favoritima.` };
     }
 
     if (/(dodaj|stavi|ubaci)/.test(n) && /(planer|plan|dan|ponedjelj|utor|srijed|cetvrt|petak|subot|nedjelj|danas|sutra)/.test(n)) {
-      const r = spomenuti || pronadiRecept(kontekst.zadnjiRecept);
-      if (!r) return { html: "Koji recept da dodam u planer? Prvo mi reci što te zanima. 🙂", cipovi: ["Iznenadi me"] };
-      kontekst.zadnjiRecept = r.id;
-      if (dan) {
-        dodajUPlaner(dan, r.id);
+      const r = mentioned || findRecipe(context.lastRecipe);
+      if (!r) return { html: `Koji recept da dodam u planer? Prvo mi reci što te zanima. ${icon("smile")}`, chips: ["Iznenadi me"] };
+      context.lastRecipe = r.id;
+      if (day) {
+        addToPlanner(day, r.id);
         return {
-          html: `Gotovo! ✅ Recept <strong>${r.naziv}</strong> je u planeru za <strong>${zaDan(dan)}</strong>.`,
-          cipovi: ["Što imam u planeru?"]
+          html: `Gotovo! ${icon("check")} Recept <strong>${r.name}</strong> je u planeru za <strong>${forDay(day)}</strong>.`,
+          chips: ["Što imam u planeru?"]
         };
       }
-      kontekst.cekaDan = r.id;
-      return { html: `Za koji dan da dodam <strong>${r.naziv}</strong>?`, cipovi: [...DANI] };
+      context.awaitingDay = r.id;
+      return { html: `Za koji dan da dodam <strong>${r.name}</strong>?`, chips: [...DAYS] };
     }
 
-    if (/(planer|popis za kupnju|kupnj|sto imam u planu|moj plan)/.test(n)) return prikaziPlaner();
+    if (/(planer|popis za kupnju|kupnj|sto imam u planu|moj plan)/.test(n)) return showPlanner();
 
     // 4. preračun porcija ("za 6 osoba", "za dvoje")
-    const porcijeMatch = n.match(/(\d+|[a-z]+)\s*(osob|porcij|ljud|gost)/) || n.match(/\bza (dvoje|troje|cetvero|petero|sestero)\b/);
-    if (porcijeMatch) {
-      const broj = Number(porcijeMatch[1]) || BROJEVI[porcijeMatch[1]];
-      const fp = izvuciFiltere(n, poruka);
-      const jePretraga = !spomenuti && (fp.sastojci.length || fp.kategorija);
-      const r = jePretraga ? null : spomenuti || pronadiRecept(kontekst.zadnjiRecept);
-      if (broj && r) {
-        kontekst.zadnjiRecept = r.id;
-        return sastojciRecepta(r, Math.min(broj, 50));
+    const servingsMatch = n.match(/(\d+|[a-z]+)\s*(osob|porcij|ljud|gost)/) || n.match(/\bza (dvoje|troje|cetvero|petero|sestero)\b/);
+    if (servingsMatch) {
+      const count = Number(servingsMatch[1]) || NUMBER_WORDS[servingsMatch[1]];
+      const fs = extractFilters(n, message);
+      const isSearch = !mentioned && (fs.ingredients.length || fs.category);
+      const r = isSearch ? null : mentioned || findRecipe(context.lastRecipe);
+      if (count && r) {
+        context.lastRecipe = r.id;
+        return recipeIngredients(r, Math.min(count, 50));
       }
-      if (broj && !r && !jePretraga) return { html: "Za koji recept da preračunam sastojke?", cipovi: ["Iznenadi me"] };
+      if (count && !r && !isSearch) return { html: "Za koji recept da preračunam sastojke?", chips: ["Iznenadi me"] };
     }
 
     // 5. pitanje o točno određenom receptu
-    if (spomenuti) {
-      kontekst.zadnjiRecept = spomenuti.id;
-      if (/(kako|postupak|priprem|radi se|koraci)/.test(n)) return postupakRecepta(spomenuti);
-      if (/(sastoj|sto treba|treba mi|potrebno)/.test(n)) return sastojciRecepta(spomenuti, spomenuti.porcije);
-      if (/(kalorij|kcal)/.test(n)) return { html: `Jedna porcija (${poveznica(spomenuti)}) ima oko <strong>${spomenuti.kalorije} kcal</strong>.` };
+    if (mentioned) {
+      context.lastRecipe = mentioned.id;
+      if (/(kako|postupak|priprem|radi se|koraci)/.test(n)) return recipeSteps(mentioned);
+      if (/(sastoj|sto treba|treba mi|potrebno)/.test(n)) return recipeIngredients(mentioned, mentioned.servings);
+      if (/(kalorij|kcal)/.test(n)) return { html: `Jedna porcija (${recipeLink(mentioned)}) ima oko <strong>${mentioned.calories} kcal</strong>.` };
       if (/(traje|dugo|koliko vremena)/.test(n)) {
-        return { html: `Priprema recepta ${poveznica(spomenuti)} traje oko <strong>${spomenuti.vrijeme} min</strong>${spomenuti.napomena ? " " + spomenuti.napomena : ""}.` };
+        return { html: `Priprema recepta ${recipeLink(mentioned)} traje oko <strong>${mentioned.time} min</strong>${mentioned.note ? " " + mentioned.note : ""}.` };
       }
-      return sazetakRecepta(spomenuti);
+      return recipeSummary(mentioned);
     }
 
     // 6. dodatno pitanje o receptu iz konteksta ("koliko to traje?")
-    const zadnji = pronadiRecept(kontekst.zadnjiRecept);
-    if (zadnji) {
-      if (/(postupak|kako se (radi|priprema|pravi)|koraci|kako ga|kako ju|kako to)/.test(n)) return postupakRecepta(zadnji);
-      if (/(sastojc|sastojak|sto (mi )?treba)/.test(n)) return sastojciRecepta(zadnji, zadnji.porcije);
-      if (/(kalorij|kcal)/.test(n)) return { html: `Jedna porcija (${poveznica(zadnji)}) ima oko <strong>${zadnji.kalorije} kcal</strong>.` };
+    const last = findRecipe(context.lastRecipe);
+    if (last) {
+      if (/(postupak|kako se (radi|priprema|pravi)|koraci|kako ga|kako ju|kako to)/.test(n)) return recipeSteps(last);
+      if (/(sastojc|sastojak|sto (mi )?treba)/.test(n)) return recipeIngredients(last, last.servings);
+      if (/(kalorij|kcal)/.test(n)) return { html: `Jedna porcija (${recipeLink(last)}) ima oko <strong>${last.calories} kcal</strong>.` };
       if (/(koliko (to |ovo )?traje|koliko dugo|koliko vremena)/.test(n)) {
-        return { html: `Priprema recepta ${poveznica(zadnji)} traje oko <strong>${zadnji.vrijeme} min</strong>${zadnji.napomena ? " " + zadnji.napomena : ""}.` };
+        return { html: `Priprema recepta ${recipeLink(last)} traje oko <strong>${last.time} min</strong>${last.note ? " " + last.note : ""}.` };
       }
     }
 
-    if (!zadnji && kontekst.ponudeni && kontekst.ponudeni.length > 1 &&
+    if (!last && context.offered && context.offered.length > 1 &&
         /(postupak|kako se (radi|priprema|pravi)|koraci|sastojc|kalorij|koliko (to )?traje|koliko dugo)/.test(n)) {
       return {
         html: "Ponudio sam ti nekoliko recepata. Na koji od njih misliš?",
-        cipovi: kontekst.ponudeni.map((id) => pronadiRecept(id).naziv)
+        chips: context.offered.map((id) => findRecipe(id).name)
       };
     }
 
     // 7. nasumični prijedlog
     if (/(iznenadi|nasumic|bilo sto|svejedno|ne znam sto)/.test(n)) {
-      const r = RECEPTI[Math.floor(Math.random() * RECEPTI.length)];
-      kontekst.zadnjiRecept = r.id;
-      const odg = sazetakRecepta(r);
-      odg.html = "Što kažeš na ovo? 🎲<br>" + odg.html;
-      odg.cipovi = ["Kako se radi?", "Iznenadi me opet", "Dodaj u planer"];
-      return odg;
+      const r = RECIPES[Math.floor(Math.random() * RECIPES.length)];
+      context.lastRecipe = r.id;
+      const reply = recipeSummary(r);
+      reply.html = `Što kažeš na ovo? ${icon("dice")}<br>` + reply.html;
+      reply.chips = ["Kako se radi?", "Iznenadi me opet", "Dodaj u planer"];
+      return reply;
     }
 
     // 8. još prijedloga iz prethodne pretrage
-    if (/^(jos|daj jos|jos nesto|nesto drugo|drugo|drugi|vise|ima li jos)\b/.test(n) && !imaFiltera(izvuciFiltere(n, poruka))) {
-      if (kontekst.prikazano < kontekst.rezultati.length) return prikaziRezultate("Evo još prijedloga:");
-      return { html: "To su svi recepti koji odgovaraju. Probaj s drugim sastojcima ili vrstom jela.", cipovi: ["Neki desert", "Iznenadi me"] };
+    if (/^(jos|daj jos|jos nesto|nesto drugo|drugo|drugi|vise|ima li jos)\b/.test(n) && !hasFilters(extractFilters(n, message))) {
+      if (context.shown < context.results.length) return showResults("Evo još prijedloga:");
+      return { html: "To su svi recepti koji odgovaraju. Probaj s drugim sastojcima ili vrstom jela.", chips: ["Neki desert", "Iznenadi me"] };
     }
 
     // 9. pretraga po sastojcima i filterima
-    let f = izvuciFiltere(n, poruka);
-    if (imaFiltera(f)) {
+    let f = extractFilters(n, message);
+    if (hasFilters(f)) {
       // nastavak prethodnog upita: "a nešto bez mesa?", "i da je brzo"
-      const nastavak = kontekst.filteri && /^(a|i|ali|moze|a moze|sto je s)\b/.test(n);
-      if (nastavak) {
-        const st = kontekst.filteri;
+      const isFollowUp = context.filters && /^(a|i|ali|moze|a moze|sto je s)\b/.test(n);
+      if (isFollowUp) {
+        const prev = context.filters;
         f = {
-          sastojci: f.sastojci.length ? f.sastojci : st.sastojci,
-          iskljuci: [...st.iskljuci, ...f.iskljuci],
-          kategorija: f.kategorija || st.kategorija,
-          vege: f.vege || st.vege,
-          maxVrijeme: f.maxVrijeme || st.maxVrijeme,
-          tezina: f.tezina || st.tezina
+          ingredients: f.ingredients.length ? f.ingredients : prev.ingredients,
+          excluded: [...prev.excluded, ...f.excluded],
+          category: f.category || prev.category,
+          veg: f.veg || prev.veg,
+          maxTime: f.maxTime || prev.maxTime,
+          difficulty: f.difficulty || prev.difficulty
         };
       }
-      kontekst.filteri = f;
-      kontekst.rezultati = pretrazi(f);
-      kontekst.prikazano = 0;
+      context.filters = f;
+      context.results = search(f);
+      context.shown = 0;
 
-      if (!kontekst.rezultati.length) {
+      if (!context.results.length) {
         // pokušaj samo sa sastojcima, bez ostalih uvjeta
-        if (f.sastojci.length && (f.kategorija || f.vege || f.maxVrijeme || f.tezina || f.iskljuci.length)) {
-          const blaze = { ...f, kategorija: null, vege: false, maxVrijeme: null, tezina: null, iskljuci: [] };
-          const rez = pretrazi(blaze);
-          if (rez.length) {
-            kontekst.filteri = blaze;
-            kontekst.rezultati = rez;
-            return prikaziRezultate(`Nemam recept koji odgovara svemu (${opisFiltera(f)}) 😕<br>Ali s tim sastojcima imam:`);
+        if (f.ingredients.length && (f.category || f.veg || f.maxTime || f.difficulty || f.excluded.length)) {
+          const relaxed = { ...f, category: null, veg: false, maxTime: null, difficulty: null, excluded: [] };
+          const relaxedResults = search(relaxed);
+          if (relaxedResults.length) {
+            context.filters = relaxed;
+            context.results = relaxedResults;
+            return showResults(`Nemam recept koji odgovara svemu (${describeFilters(f)}) ${icon("confused")}<br>Ali s tim sastojcima imam:`);
           }
         }
         return {
-          html: `Nažalost, nemam recept za to (${opisFiltera(f)}). 😕 Probaj s drugim sastojcima.`,
-          cipovi: ["Iznenadi me", "Što sve znaš?"]
+          html: `Nažalost, nemam recept za to (${describeFilters(f)}). ${icon("confused")} Probaj s drugim sastojcima.`,
+          chips: ["Iznenadi me", "Što sve znaš?"]
         };
       }
-      return prikaziRezultate(`Evo što predlažem (${opisFiltera(f)}):`);
+      return showResults(`Evo što predlažem (${describeFilters(f)}):`);
     }
 
     // 10. nije prepoznato
     return {
-      html: "Hmm, nisam siguran što misliš. 🤔 Probaj npr. <em>„što mogu od piletine?“</em>, <em>„neka juha“</em> ili <em>„kako se radi rižoto?“</em>",
-      cipovi: ["Što sve znaš?", "Iznenadi me"]
+      html: `Hmm, nisam siguran što misliš. ${icon("thinking")} Probaj npr. <em>„što mogu od piletine?“</em>, <em>„neka juha“</em> ili <em>„kako se radi rižoto?“</em>`,
+      chips: ["Što sve znaš?", "Iznenadi me"]
     };
   }
 
@@ -450,153 +450,153 @@
 
   document.body.insertAdjacentHTML(
     "beforeend",
-    `<button class="chat-gumb" id="chat-gumb" aria-label="Otvori chat s Kuhar Botom" aria-expanded="false">
-       <span class="chat-gumb-ikona">💬</span>
+    `<button class="chat-btn" id="chat-toggle" aria-label="Otvori chat s Kuhar Botom" aria-expanded="false">
+       <span class="chat-btn-icon">${icon("speech-bubble")}</span>
      </button>
-     <section class="chat-prozor" id="chat-prozor" hidden aria-label="Chat s Kuhar Botom">
-       <header class="chat-zaglavlje">
-         <div class="chat-avatar">👩‍🍳</div>
-         <div class="chat-naslov"><strong>${IME_BOTA}</strong><small>Pomoćnik za recepte</small></div>
-         <button class="chat-akcija" id="chat-ocisti" title="Novi razgovor" aria-label="Započni novi razgovor">↺</button>
-         <button class="chat-akcija" id="chat-zatvori" aria-label="Zatvori chat">✕</button>
+     <section class="chat-window" id="chat-window" hidden aria-label="Chat s Kuhar Botom">
+       <header class="chat-header">
+         <div class="chat-avatar">${icon("chef")}</div>
+         <div class="chat-title"><strong>${BOT_NAME}</strong><small>Pomoćnik za recepte</small></div>
+         <button class="chat-action" id="chat-clear" title="Novi razgovor" aria-label="Započni novi razgovor">↺</button>
+         <button class="chat-action" id="chat-close" aria-label="Zatvori chat">✕</button>
        </header>
-       <div class="chat-poruke" id="chat-poruke" aria-live="polite"></div>
-       <div class="chat-cipovi" id="chat-cipovi"></div>
-       <form class="chat-forma" id="chat-forma" autocomplete="off">
-         <label for="chat-unos" class="vizualno-skriveno">Tvoja poruka</label>
-         <input id="chat-unos" type="text" placeholder="Npr. imam jaja i sir…" maxlength="200">
+       <div class="chat-messages" id="chat-messages" aria-live="polite"></div>
+       <div class="chat-chips" id="chat-chips"></div>
+       <form class="chat-form" id="chat-form" autocomplete="off">
+         <label for="chat-input" class="visually-hidden">Tvoja poruka</label>
+         <input id="chat-input" type="text" placeholder="Npr. imam jaja i sir…" maxlength="200">
          <button type="submit" aria-label="Pošalji">➤</button>
        </form>
      </section>`
   );
 
-  const gumb = document.getElementById("chat-gumb");
-  const prozor = document.getElementById("chat-prozor");
-  const poruke = document.getElementById("chat-poruke");
-  const cipovi = document.getElementById("chat-cipovi");
-  const forma = document.getElementById("chat-forma");
-  const unos = document.getElementById("chat-unos");
+  const toggleButton = document.getElementById("chat-toggle");
+  const chatWindow = document.getElementById("chat-window");
+  const messages = document.getElementById("chat-messages");
+  const chipsContainer = document.getElementById("chat-chips");
+  const form = document.getElementById("chat-form");
+  const input = document.getElementById("chat-input");
 
-  function spremiStanje() {
-    spremi(KLJUC_POVIJEST, povijest.slice(-40));
-    spremi(KLJUC_KONTEKST, kontekst);
+  function saveState() {
+    save(HISTORY_KEY, history.slice(-40));
+    save(CONTEXT_KEY, context);
   }
 
-  function nacrtajPoruku(p) {
+  function renderMessage(m) {
     const el = document.createElement("div");
-    el.className = `chat-poruka ${p.uloga}`;
-    el.innerHTML = p.html;
-    poruke.appendChild(el);
-    poruke.scrollTop = poruke.scrollHeight;
+    el.className = `chat-message ${m.role}`;
+    el.innerHTML = m.html;
+    messages.appendChild(el);
+    messages.scrollTop = messages.scrollHeight;
   }
 
-  function prikaziCipove(lista) {
-    cipovi.innerHTML = "";
-    (lista || []).forEach((tekst) => {
+  function showChips(list) {
+    chipsContainer.innerHTML = "";
+    (list || []).forEach((text) => {
       const c = document.createElement("button");
       c.type = "button";
-      c.className = "cip";
-      c.textContent = tekst;
-      cipovi.appendChild(c);
+      c.className = "chip";
+      c.textContent = text;
+      chipsContainer.appendChild(c);
     });
   }
 
-  function dodajPoruku(uloga, html, listaCipova) {
-    const p = { uloga, html };
-    if (listaCipova) p.cipovi = listaCipova;
-    povijest.push(p);
-    nacrtajPoruku(p);
-    spremiStanje();
+  function addMessage(role, html, chips) {
+    const m = { role, html };
+    if (chips) m.chips = chips;
+    history.push(m);
+    renderMessage(m);
+    saveState();
   }
 
-  function pozdravnaPoruka() {
-    let tekst = `Bok! 👋 Ja sam ${IME_BOTA}. Reci mi koje sastojke imaš ili kakvo jelo želiš, a ja ću predložiti recept.`;
-    const r = pronadiRecept(kontekst.zadnjiRecept);
-    if (document.body.dataset.stranica === "recept" && r) {
-      tekst += `<br>Vidim da gledaš <strong>${r.naziv}</strong>, pa me slobodno pitaj nešto o tom receptu.`;
+  function greet() {
+    let text = `Bok! ${icon("wave")} Ja sam ${BOT_NAME}. Reci mi koje sastojke imaš ili kakvo jelo želiš, a ja ću predložiti recept.`;
+    const r = findRecipe(context.lastRecipe);
+    if (document.body.dataset.page === "recipe" && r) {
+      text += `<br>Vidim da gledaš <strong>${r.name}</strong>, pa me slobodno pitaj nešto o tom receptu.`;
     }
-    dodajPoruku("bot", tekst, ["Što mogu od jaja?", "Brzi vegetarijanski ručak", "Neki desert", "Što sve znaš?"]);
-    prikaziCipove(povijest[povijest.length - 1].cipovi);
+    addMessage("bot", text, ["Što mogu od jaja?", "Brzi vegetarijanski ručak", "Neki desert", "Što sve znaš?"]);
+    showChips(history[history.length - 1].chips);
   }
 
-  function posalji(tekst) {
-    tekst = tekst.trim();
-    if (!tekst) return;
-    dodajPoruku("korisnik", escapeHtml(tekst));
-    prikaziCipove([]);
-    unos.value = "";
+  function send(text) {
+    text = text.trim();
+    if (!text) return;
+    addMessage("user", escapeHtml(text));
+    showChips([]);
+    input.value = "";
 
     // indikator "bot piše..."
-    const pise = document.createElement("div");
-    pise.className = "chat-poruka bot pise";
-    pise.innerHTML = "<span></span><span></span><span></span>";
-    poruke.appendChild(pise);
-    poruke.scrollTop = poruke.scrollHeight;
+    const typing = document.createElement("div");
+    typing.className = "chat-message bot typing";
+    typing.innerHTML = "<span></span><span></span><span></span>";
+    messages.appendChild(typing);
+    messages.scrollTop = messages.scrollHeight;
 
     setTimeout(() => {
-      pise.remove();
-      let odgovor;
+      typing.remove();
+      let reply;
       try {
-        odgovor = obradi(tekst);
+        reply = respond(text);
       } catch (e) {
         console.error(e);
-        odgovor = { html: "Ups, nešto je pošlo krivo. Pokušaj ponovno. 🙈" };
+        reply = { html: `Ups, nešto je pošlo krivo. Pokušaj ponovno. ${icon("monkey")}` };
       }
-      dodajPoruku("bot", odgovor.html, odgovor.cipovi);
-      prikaziCipove(odgovor.cipovi);
+      addMessage("bot", reply.html, reply.chips);
+      showChips(reply.chips);
     }, 450 + Math.random() * 400);
   }
 
-  function otvori() {
-    prozor.hidden = false;
-    gumb.setAttribute("aria-expanded", "true");
-    gumb.classList.add("otvoren");
-    if (!poruke.children.length) {
-      povijest.forEach(nacrtajPoruku);
-      if (!povijest.length) pozdravnaPoruka();
-      else prikaziCipove(povijest[povijest.length - 1].cipovi);
+  function open() {
+    chatWindow.hidden = false;
+    toggleButton.setAttribute("aria-expanded", "true");
+    toggleButton.classList.add("open");
+    if (!messages.children.length) {
+      history.forEach(renderMessage);
+      if (!history.length) greet();
+      else showChips(history[history.length - 1].chips);
     }
-    poruke.scrollTop = poruke.scrollHeight;
-    unos.focus();
+    messages.scrollTop = messages.scrollHeight;
+    input.focus();
   }
 
-  function zatvori() {
-    prozor.hidden = true;
-    gumb.setAttribute("aria-expanded", "false");
-    gumb.classList.remove("otvoren");
-    gumb.focus();
+  function close() {
+    chatWindow.hidden = true;
+    toggleButton.setAttribute("aria-expanded", "false");
+    toggleButton.classList.remove("open");
+    toggleButton.focus();
   }
 
-  gumb.addEventListener("click", () => (prozor.hidden ? otvori() : zatvori()));
-  document.getElementById("chat-zatvori").addEventListener("click", zatvori);
-  document.getElementById("chat-ocisti").addEventListener("click", () => {
-    povijest = [];
-    const naStraniciRecepta = document.body.dataset.stranica === "recept" ? kontekst.zadnjiRecept : null;
-    kontekst = Object.assign({}, POCETNI_KONTEKST, { zadnjiRecept: naStraniciRecepta });
-    poruke.innerHTML = "";
-    pozdravnaPoruka();
+  toggleButton.addEventListener("click", () => (chatWindow.hidden ? open() : close()));
+  document.getElementById("chat-close").addEventListener("click", close);
+  document.getElementById("chat-clear").addEventListener("click", () => {
+    history = [];
+    const recipeOnPage = document.body.dataset.page === "recipe" ? context.lastRecipe : null;
+    context = Object.assign({}, INITIAL_CONTEXT, { lastRecipe: recipeOnPage });
+    messages.innerHTML = "";
+    greet();
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !prozor.hidden) zatvori();
+    if (e.key === "Escape" && !chatWindow.hidden) close();
   });
 
-  forma.addEventListener("submit", (e) => {
+  form.addEventListener("submit", (e) => {
     e.preventDefault();
-    posalji(unos.value);
+    send(input.value);
   });
-  cipovi.addEventListener("click", (e) => {
-    const c = e.target.closest(".cip");
-    if (c) posalji(c.textContent);
+  chipsContainer.addEventListener("click", (e) => {
+    const c = e.target.closest(".chip");
+    if (c) send(c.textContent);
   });
 
   // gumbi na stranici koji otvaraju chat (npr. na početnoj)
-  document.querySelectorAll(".otvori-chat").forEach((b) =>
+  document.querySelectorAll(".open-chat").forEach((b) =>
     b.addEventListener("click", (e) => {
       e.preventDefault();
-      otvori();
+      open();
     })
   );
 
   // za testiranje u konzoli preglednika: kuharBot("imam jaja")
-  window.kuharBot = (tekst) => obradi(tekst);
+  window.kuharBot = (text) => respond(text);
 })();

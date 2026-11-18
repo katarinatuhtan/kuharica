@@ -4,36 +4,36 @@
 
 /* ---------- Varijable i teme ---------- */
 :root {
-  --pozadina: #fbf7f2;
-  --povrsina: #ffffff;
-  --povrsina-2: #f4ece2;
-  --tekst: #2b2420;
-  --tekst-blagi: #6f625a;
-  --naglasak: #c8553d;
-  --naglasak-tamni: #a8432e;
-  --naglasak-svijetli: #f8e1d9;
-  --zelena: #5d7a32;
-  --rub: #e8ddd0;
-  --sjena: 0 2px 6px rgba(60, 40, 20, 0.06), 0 8px 24px rgba(60, 40, 20, 0.08);
-  --radijus: 16px;
-  --font-naslov: Georgia, "Times New Roman", serif;
-  --font-tekst: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  --sirina: 1160px;
+  --background: #fbf7f2;
+  --surface: #ffffff;
+  --surface-2: #f4ece2;
+  --text: #2b2420;
+  --text-muted: #6f625a;
+  --accent: #c8553d;
+  --accent-dark: #a8432e;
+  --accent-light: #f8e1d9;
+  --green: #5d7a32;
+  --border: #e8ddd0;
+  --shadow: 0 2px 6px rgba(60, 40, 20, 0.06), 0 8px 24px rgba(60, 40, 20, 0.08);
+  --radius: 16px;
+  --font-heading: Georgia, "Times New Roman", serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --max-width: 1160px;
   color-scheme: light;
 }
 
-[data-tema="tamna"] {
-  --pozadina: #1c1917;
-  --povrsina: #282320;
-  --povrsina-2: #332c28;
-  --tekst: #f3ece6;
-  --tekst-blagi: #b5a89f;
-  --naglasak: #e8765c;
-  --naglasak-tamni: #f08f78;
-  --naglasak-svijetli: #4a2e26;
-  --zelena: #9bbd6a;
-  --rub: #3d3531;
-  --sjena: 0 2px 6px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+[data-theme="dark"] {
+  --background: #1c1917;
+  --surface: #282320;
+  --surface-2: #332c28;
+  --text: #f3ece6;
+  --text-muted: #b5a89f;
+  --accent: #e8765c;
+  --accent-dark: #f08f78;
+  --accent-light: #4a2e26;
+  --green: #9bbd6a;
+  --border: #3d3531;
+  --shadow: 0 2px 6px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
   color-scheme: dark;
 }
 
@@ -50,11 +50,11 @@
 
 body {
   margin: 0;
-  font-family: var(--font-tekst);
+  font-family: var(--font-body);
   font-size: 1rem;
   line-height: 1.6;
-  color: var(--tekst);
-  background: var(--pozadina);
+  color: var(--text);
+  background: var(--background);
   transition: background-color 0.3s, color 0.3s;
   display: flex;
   flex-direction: column;
@@ -68,7 +68,7 @@ main {
 h1,
 h2,
 h3 {
-  font-family: var(--font-naslov);
+  font-family: var(--font-heading);
   line-height: 1.2;
   margin: 0 0 0.5em;
 }
@@ -82,7 +82,7 @@ h2 {
 }
 
 a {
-  color: var(--naglasak);
+  color: var(--accent);
 }
 
 img {
@@ -98,20 +98,25 @@ textarea {
 }
 
 :focus-visible {
-  outline: 3px solid var(--naglasak);
+  outline: 3px solid var(--accent);
   outline-offset: 2px;
 }
 
-.omotac {
-  width: min(100% - 2.5rem, var(--sirina));
+.wrapper {
+  width: min(100% - 2.5rem, var(--max-width));
   margin-inline: auto;
 }
 
-.sekcija {
+.section {
   padding: 3.5rem 0;
 }
 
-.sekcija-zaglavlje {
+/* sekcija koja se nastavlja na prethodnu, bez gornjeg razmaka */
+.section-no-top {
+  padding-top: 0;
+}
+
+.section-header {
   display: flex;
   justify-content: space-between;
   align-items: end;
@@ -120,16 +125,16 @@ textarea {
   margin-bottom: 1.5rem;
 }
 
-.sekcija-zaglavlje h2 {
+.section-header h2 {
   margin: 0;
 }
 
-.podnaslov {
-  color: var(--tekst-blagi);
+.subtitle {
+  color: var(--text-muted);
   margin: 0.25rem 0 0;
 }
 
-.vizualno-skriveno {
+.visually-hidden {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -139,48 +144,48 @@ textarea {
 }
 
 /* ---------- Gumbi ---------- */
-.gumb {
+.btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
   padding: 0.65rem 1.2rem;
   border-radius: 999px;
-  border: 2px solid var(--rub);
-  background: var(--povrsina);
+  border: 2px solid var(--border);
+  background: var(--surface);
   font-weight: 600;
   text-decoration: none;
-  color: var(--tekst);
+  color: var(--text);
   cursor: pointer;
   transition: transform 0.15s, background-color 0.2s, border-color 0.2s;
 }
 
-.gumb:hover {
+.btn:hover {
   transform: translateY(-1px);
-  border-color: var(--naglasak);
+  border-color: var(--accent);
 }
 
-.gumb-primarni {
-  background: var(--naglasak);
-  border-color: var(--naglasak);
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
   color: #fff;
 }
 
-.gumb-primarni:hover {
-  background: var(--naglasak-tamni);
-  border-color: var(--naglasak-tamni);
+.btn-primary:hover {
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
 }
 
-[data-tema="tamna"] .gumb-primarni {
+[data-theme="dark"] .btn-primary {
   color: #1c1917;
 }
 
-.gumb-ikona {
+.btn-icon {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
-  border: 1px solid var(--rub);
-  background: var(--povrsina);
+  border: 1px solid var(--border);
+  background: var(--surface);
   cursor: pointer;
   font-size: 1.1rem;
   display: inline-grid;
@@ -188,21 +193,51 @@ textarea {
   transition: background-color 0.2s;
 }
 
-.gumb-ikona:hover {
-  background: var(--povrsina-2);
+.btn-icon:hover {
+  background: var(--surface-2);
+}
+
+/* ---------- 3D ikone (thiings.co) ----------
+   veličina ide u em, pa ikonu skalira font-size roditelja */
+.icon {
+  display: inline-block;
+  width: 1.25em;
+  height: 1.25em;
+  object-fit: contain;
+  vertical-align: -0.3em;
+}
+
+.logo-icon .icon,
+.hero-illustration .icon,
+.category-emoji .icon,
+.empty-emoji .icon,
+.success-emoji .icon,
+.card-image .icon,
+.recipe-emoji .icon,
+.chat-avatar .icon,
+.chat-btn-icon .icon,
+.chat-mini .icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+}
+
+.btn-icon .icon {
+  width: 1.4em;
+  height: 1.4em;
 }
 
 /* ---------- Zaglavlje i navigacija ---------- */
-.zaglavlje {
+.header {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: color-mix(in srgb, var(--pozadina) 88%, transparent);
+  background: color-mix(in srgb, var(--background) 88%, transparent);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--rub);
+  border-bottom: 1px solid var(--border);
 }
 
-.zaglavlje-sadrzaj {
+.header-content {
   display: flex;
   align-items: center;
   gap: 1.5rem;
@@ -213,48 +248,48 @@ textarea {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-family: var(--font-naslov);
+  font-family: var(--font-heading);
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--tekst);
+  color: var(--text);
   text-decoration: none;
 }
 
-.logo-ikona {
+.logo-icon {
   font-size: 1.7rem;
 }
 
-.navigacija {
+.navigation {
   display: flex;
   gap: 0.25rem;
   margin-left: auto;
 }
 
-.navigacija a {
+.navigation a {
   padding: 0.5rem 0.9rem;
   border-radius: 999px;
   text-decoration: none;
-  color: var(--tekst);
+  color: var(--text);
   font-weight: 500;
   transition: background-color 0.2s;
 }
 
-.navigacija a:hover {
-  background: var(--povrsina-2);
+.navigation a:hover {
+  background: var(--surface-2);
 }
 
-.navigacija a.aktivno {
-  background: var(--naglasak-svijetli);
-  color: var(--naglasak);
+.navigation a.active {
+  background: var(--accent-light);
+  color: var(--accent);
   font-weight: 700;
 }
 
-.zaglavlje-akcije {
+.header-actions {
   display: flex;
   gap: 0.5rem;
 }
 
-.izbornik-gumb {
+.menu-btn {
   display: none;
 }
 
@@ -262,11 +297,11 @@ textarea {
 .hero {
   padding: 4rem 0 3rem;
   background:
-    radial-gradient(circle at 85% 20%, var(--naglasak-svijetli), transparent 45%),
-    radial-gradient(circle at 10% 90%, color-mix(in srgb, var(--zelena) 18%, transparent), transparent 40%);
+    radial-gradient(circle at 85% 20%, var(--accent-light), transparent 45%),
+    radial-gradient(circle at 10% 90%, color-mix(in srgb, var(--green) 18%, transparent), transparent 40%);
 }
 
-.hero-sadrzaj {
+.hero-content {
   display: grid;
   grid-template-columns: 1.3fr 1fr;
   gap: 2rem;
@@ -275,43 +310,43 @@ textarea {
 
 .hero p {
   font-size: 1.15rem;
-  color: var(--tekst-blagi);
+  color: var(--text-muted);
   max-width: 34rem;
 }
 
-.hero-pretraga {
+.hero-search {
   display: flex;
   gap: 0.5rem;
   margin: 1.5rem 0 1rem;
   max-width: 34rem;
 }
 
-.hero-pretraga input {
+.hero-search input {
   flex: 1;
   min-width: 0;
 }
 
-.hero-oznake {
+.hero-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
 }
 
-.hero-oznake a {
+.hero-tags a {
   padding: 0.3rem 0.8rem;
   border-radius: 999px;
-  background: var(--povrsina);
-  border: 1px solid var(--rub);
+  background: var(--surface);
+  border: 1px solid var(--border);
   font-size: 0.9rem;
   text-decoration: none;
-  color: var(--tekst);
+  color: var(--text);
 }
 
-.hero-oznake a:hover {
-  border-color: var(--naglasak);
+.hero-tags a:hover {
+  border-color: var(--accent);
 }
 
-.hero-ilustracija {
+.hero-illustration {
   font-size: clamp(5rem, 14vw, 9rem);
   text-align: center;
   line-height: 1;
@@ -319,16 +354,16 @@ textarea {
   user-select: none;
 }
 
-.hero-ilustracija span {
+.hero-illustration span {
   display: inline-block;
   animation: lebdi 4s ease-in-out infinite;
 }
 
-.hero-ilustracija span:nth-child(2) {
+.hero-illustration span:nth-child(2) {
   animation-delay: 0.6s;
 }
 
-.hero-ilustracija span:nth-child(3) {
+.hero-illustration span:nth-child(3) {
   animation-delay: 1.2s;
 }
 
@@ -347,30 +382,70 @@ select,
 textarea {
   padding: 0.7rem 1rem;
   border-radius: 12px;
-  border: 2px solid var(--rub);
-  background: var(--povrsina);
+  border: 2px solid var(--border);
+  background: var(--surface);
   transition: border-color 0.2s;
   width: 100%;
+  line-height: 1.5;
+}
+
+/* jednostruka polja i padajući izbornici iste visine */
+input[type="text"],
+input[type="email"],
+input[type="search"],
+input[type="number"],
+select {
+  height: 3rem;
+}
+
+input[type="search"] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* vlastita strelica, odmaknuta od desnog ruba koliko i tekst od lijevog (1rem) */
+select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 2.75rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%236f625a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 0.75rem;
+  cursor: pointer;
+}
+
+/* gumbi u istom redu s poljem jednake su visine kao polje */
+.hero-search .btn,
+.add-to-planner .btn,
+.planner-form .btn {
+  height: 3rem;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+[data-theme="dark"] select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23b5a89f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: var(--naglasak);
+  border-color: var(--accent);
   outline: none;
 }
 
 /* ---------- Recept dana ---------- */
-.istaknuto {
+.featured {
   display: grid;
   grid-template-columns: 380px 1fr;
-  background: var(--povrsina);
-  border-radius: var(--radijus);
+  background: var(--surface);
+  border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: var(--sjena);
+  box-shadow: var(--shadow);
 }
 
-.istaknuto.animacija {
+.featured.animate {
   animation: pojavi 0.45s ease;
 }
 
@@ -381,120 +456,125 @@ textarea:focus {
   }
 }
 
-.istaknuto-slika {
-  background: var(--boja);
+.featured-image {
+  background: var(--color);
   display: grid;
   place-items: center;
   font-size: 7rem;
   min-height: 240px;
 }
 
-.istaknuto-tekst {
+.featured-text {
   padding: 2rem;
 }
 
-.istaknuto-tekst h3 {
+.featured-text .tag {
+  margin-bottom: 10px;
+}
+
+.featured-text h3 {
   font-size: 1.9rem;
 }
 
-.istaknuto-tekst .meta {
+.featured-text .meta {
   margin: 1rem 0 1.5rem;
 }
 
 /* ---------- Kategorije ---------- */
-.kategorije {
+.categories {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 1rem;
 }
 
-.kategorija {
+.category {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.2rem;
   padding: 1.5rem 1rem;
-  border-radius: var(--radijus);
-  background: var(--boja);
+  border-radius: var(--radius);
+  background: var(--color);
   color: #2b2420;
   text-decoration: none;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.kategorija:hover {
+.category:hover {
   transform: translateY(-4px);
-  box-shadow: var(--sjena);
+  box-shadow: var(--shadow);
 }
 
-.kategorija-emoji {
+.category-emoji {
   font-size: 2.6rem;
 }
 
-.kategorija small {
+.category small {
   opacity: 0.75;
 }
 
-[data-tema="tamna"] .kategorija,
-[data-tema="tamna"] .kartica-slika,
-[data-tema="tamna"] .istaknuto-slika,
-[data-tema="tamna"] .recept-emoji {
-  background: color-mix(in srgb, var(--boja) 35%, #282320);
-  color: var(--tekst);
+[data-theme="dark"] .category,
+[data-theme="dark"] .card-image,
+[data-theme="dark"] .featured-image,
+[data-theme="dark"] .recipe-emoji {
+  background: color-mix(in srgb, var(--color) 35%, #282320);
+  color: var(--text);
 }
 
 /* ---------- Kartice recepata ---------- */
-.mreza {
+.grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 1.5rem;
 }
 
-.kartica {
+.card {
+  --card-image-height: 190px;
   position: relative;
   display: flex;
   flex-direction: column;
-  background: var(--povrsina);
-  border-radius: var(--radijus);
+  background: var(--surface);
+  border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: var(--sjena);
+  box-shadow: var(--shadow);
   transition: transform 0.2s;
 }
 
-.kartica:hover {
+.card:hover {
   transform: translateY(-4px);
 }
 
-.kartica-slika {
+.card-image {
   display: grid;
   place-items: center;
   height: 160px;
-  background: var(--boja);
+  background: var(--color);
   font-size: 4.5rem;
   text-decoration: none;
 }
 
-.kartica-slika {
+.card-image {
   overflow: hidden;
 }
 
-.kartica-slika span {
+.card-image span {
   transition: transform 0.3s;
 }
 
-.kartica:hover .kartica-slika span {
+.card:hover .card-image span {
   transform: scale(1.12) rotate(-6deg);
 }
 
 /* fotografije jela ispunjavaju svoj okvir */
-.kartica-slika:has(img),
-.istaknuto-slika:has(img),
-.recept-emoji:has(img) {
+.card-image:has(img:not(.icon)),
+.featured-image:has(img:not(.icon)),
+.recipe-emoji:has(img:not(.icon)) {
   position: relative;
 }
 
-.kartica-slika img,
-.istaknuto-slika img,
-.recept-emoji img {
+.card-image img:not(.icon),
+.featured-image img:not(.icon),
+.recipe-emoji img:not(.icon) {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -504,54 +584,59 @@ textarea:focus {
   transition: transform 0.4s ease;
 }
 
-.kartica:hover .kartica-slika img {
+.card:hover .card-image img:not(.icon) {
   transform: scale(1.06);
 }
 
-.kartica-slika {
-  height: 190px;
+.card-image {
+  height: var(--card-image-height);
 }
 
-.istaknuto-slika,
-.recept-emoji {
+.featured-image,
+.recipe-emoji {
   overflow: hidden;
 }
 
-.istaknuto-slika:has(img) {
+.featured-image:has(img:not(.icon)) {
   min-height: 300px;
 }
 
-.kartica-tijelo {
+.card-body {
   padding: 1.1rem 1.25rem 1.25rem;
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-.kartica-tijelo h3 {
+.card-body .tag {
+  margin-bottom: 5px;
+}
+
+.card-body h3 {
   font-size: 1.25rem;
   margin: 0.4rem 0;
 }
 
-.kartica-tijelo h3 a {
-  color: var(--tekst);
+.card-body h3 a {
+  color: var(--text);
   text-decoration: none;
 }
 
-.kartica-tijelo h3 a:hover {
-  color: var(--naglasak);
+.card-body h3 a:hover {
+  color: var(--accent);
 }
 
-.kartica-tijelo p {
-  color: var(--tekst-blagi);
+.card-body p {
+  color: var(--text-muted);
   font-size: 0.95rem;
   margin: 0 0 0.75rem;
   flex: 1;
 }
 
-.kartica-nutri {
+/* traka s kalorijama uz donji rub slike; pri prelasku mišem "izraste" odozdo */
+.card-nutrition {
   position: absolute;
-  top: 0;
+  top: var(--card-image-height);
   left: 0;
   right: 0;
   padding: 0.5rem 1rem;
@@ -561,20 +646,22 @@ textarea:focus {
   font-weight: 600;
   text-align: center;
   transform: translateY(-100%);
-  transition: transform 0.25s;
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 0.25s;
+  pointer-events: none;
 }
 
-.kartica.prikazi-nutri .kartica-nutri {
-  transform: translateY(0);
+.card.show-nutrition .card-nutrition {
+  clip-path: inset(0 0 0 0);
 }
 
-.oznaka {
+.tag {
   display: inline-block;
   align-self: flex-start;
   padding: 0.15rem 0.65rem;
   border-radius: 999px;
-  background: var(--naglasak-svijetli);
-  color: var(--naglasak);
+  background: var(--accent-light);
+  color: var(--accent);
   font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -587,10 +674,10 @@ textarea:focus {
   flex-wrap: wrap;
   gap: 0.4rem 1rem;
   font-size: 0.88rem;
-  color: var(--tekst-blagi);
+  color: var(--text-muted);
 }
 
-.srce {
+.heart {
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;
@@ -600,7 +687,7 @@ textarea:focus {
   border-radius: 50%;
   border: none;
   background: rgba(255, 255, 255, 0.9);
-  color: var(--naglasak);
+  color: var(--accent);
   font-size: 1.3rem;
   line-height: 1;
   cursor: pointer;
@@ -608,11 +695,11 @@ textarea:focus {
   transition: transform 0.15s;
 }
 
-.srce:hover {
+.heart:hover {
   transform: scale(1.12);
 }
 
-.srce.aktivno {
+.heart.active {
   animation: puls 0.35s ease;
 }
 
@@ -623,135 +710,185 @@ textarea:focus {
 }
 
 /* ---------- Poziv na chat (početna) ---------- */
-.chat-poziv {
+.chat-cta {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
   flex-wrap: wrap;
   padding: 2rem 2.5rem;
-  border-radius: var(--radijus);
-  background: linear-gradient(120deg, var(--naglasak), #e0864a);
+  border-radius: var(--radius);
+  background: linear-gradient(120deg, var(--accent), #e0864a);
   color: #fff;
 }
 
-.chat-poziv h2 {
+.chat-cta h2 {
   margin-bottom: 0.25rem;
 }
 
-.chat-poziv p {
+.chat-cta p {
   margin: 0;
   opacity: 0.92;
 }
 
-.chat-poziv .gumb {
+.chat-cta .btn {
   background: #fff;
   color: #a8432e;
   border-color: #fff;
 }
 
 /* ---------- Stranica recepata: filteri ---------- */
-.naslov-stranice {
+.page-title {
   padding: 2.5rem 0 1rem;
 }
 
-.filteri {
+.filters {
   display: grid;
   grid-template-columns: 2fr repeat(3, 1fr);
   gap: 0.75rem;
   padding: 1.25rem;
-  background: var(--povrsina);
-  border-radius: var(--radijus);
-  box-shadow: var(--sjena);
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
 }
 
-.filteri label {
+.filters label {
   display: block;
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--tekst-blagi);
+  color: var(--text-muted);
   margin-bottom: 0.25rem;
 }
 
-.filteri-red {
+.filters-row {
   grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 1.5rem;
+  gap: 0.5rem;
 }
 
-.potvrdni {
+.checkbox {
   display: inline-flex !important;
   align-items: center;
   gap: 0.45rem;
   font-size: 0.95rem !important;
-  color: var(--tekst) !important;
+  color: var(--text) !important;
   cursor: pointer;
   margin: 0 !important;
 }
 
-.potvrdni input {
+.checkbox input {
   width: 1.15rem;
   height: 1.15rem;
-  accent-color: var(--naglasak);
+  accent-color: var(--accent);
 }
 
-.filteri-red .gumb {
+/* filteri kao tagovi: checkbox je skriven, a cijela oznaka se uključuje/isključuje klikom */
+.filters .filter-tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.filters .filter-tag:hover {
+  border-color: var(--accent);
+}
+
+.filter-tag input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  pointer-events: none;
+}
+
+.filters .filter-tag:has(input:checked) {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.filter-tag:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.filters-row .btn {
   margin-left: auto;
   padding: 0.4rem 1rem;
 }
 
-.brojac {
+.counter {
   margin: 1.5rem 0 1rem;
-  color: var(--tekst-blagi);
+  color: var(--text-muted);
   font-weight: 600;
 }
 
-.prazno {
+.empty {
   text-align: center;
   padding: 3rem 1rem;
 }
 
-.prazno-emoji {
+.empty-emoji {
   font-size: 4rem;
   margin: 0;
 }
 
 /* ---------- Pojedinačni recept ---------- */
-.mrvice {
+.breadcrumbs {
   padding: 1.5rem 0;
   font-size: 0.9rem;
-  color: var(--tekst-blagi);
+  color: var(--text-muted);
 }
 
-.mrvice a {
-  color: var(--tekst-blagi);
+.breadcrumbs a {
+  color: var(--text-muted);
 }
 
-.recept-zaglavlje {
+.recipe-header {
   display: grid;
   grid-template-columns: 420px 1fr;
   gap: 2.5rem;
   align-items: center;
 }
 
-.recept-emoji {
+/* na desktopu (dok su slika i tekst jedno pored drugog) više zraka ispod oznake kategorije */
+@media (min-width: 761px) {
+  .recipe-intro .tag {
+    margin-bottom: 15px;
+  }
+}
+
+.recipe-emoji {
   aspect-ratio: 4 / 3;
   border-radius: 24px;
-  background: var(--boja);
+  background: var(--color);
   display: grid;
   place-items: center;
   font-size: 8rem;
-  box-shadow: var(--sjena);
+  box-shadow: var(--shadow);
 }
 
-.recept-opis {
+.recipe-description {
   font-size: 1.15rem;
-  color: var(--tekst-blagi);
+  color: var(--text-muted);
 }
 
-.recept-meta {
+.recipe-meta {
   list-style: none;
   padding: 0;
   margin: 1rem 0 1.5rem;
@@ -760,26 +897,26 @@ textarea:focus {
   gap: 0.5rem;
 }
 
-.recept-meta li {
+.recipe-meta li {
   padding: 0.4rem 0.9rem;
-  background: var(--povrsina);
-  border: 1px solid var(--rub);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 999px;
   font-size: 0.92rem;
 }
 
-.recept-meta small {
-  color: var(--tekst-blagi);
+.recipe-meta small {
+  color: var(--text-muted);
 }
 
-.recept-akcije {
+.recipe-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
 }
 
-.srce-veliko {
+.heart-large {
   position: static;
   width: auto;
   height: auto;
@@ -787,26 +924,26 @@ textarea:focus {
   font-size: 1rem;
   padding: 0.65rem 1.2rem;
   box-shadow: none;
-  border: 2px solid var(--rub);
-  background: var(--povrsina);
+  border: 2px solid var(--border);
+  background: var(--surface);
 }
 
-.srce-veliko.aktivno {
-  background: var(--naglasak-svijetli);
-  border-color: var(--naglasak);
+.heart-large.active {
+  background: var(--accent-light);
+  border-color: var(--accent);
 }
 
-.dodaj-planer {
+.add-to-planner {
   display: flex;
   gap: 0.5rem;
 }
 
-.dodaj-planer select {
+.add-to-planner select {
   width: auto;
   border-radius: 999px;
 }
 
-.recept-tijelo {
+.recipe-body {
   display: grid;
   grid-template-columns: 1fr 1.5fr;
   gap: 2rem;
@@ -814,14 +951,14 @@ textarea:focus {
   align-items: start;
 }
 
-.blok {
-  background: var(--povrsina);
-  border-radius: var(--radijus);
+.block {
+  background: var(--surface);
+  border-radius: var(--radius);
   padding: 1.75rem;
-  box-shadow: var(--sjena);
+  box-shadow: var(--shadow);
 }
 
-.porcije {
+.servings {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -829,52 +966,53 @@ textarea:focus {
   font-weight: 600;
 }
 
-.porcije input {
+.servings input {
   width: 4.5rem;
+  height: 2.5rem;
   text-align: center;
   padding: 0.45rem;
 }
 
-.sastojci-popis {
+.ingredients-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.sastojci-popis li {
+.ingredients-list li {
   padding: 0.6rem 0.25rem;
-  border-bottom: 1px dashed var(--rub);
+  border-bottom: 1px dashed var(--border);
   cursor: pointer;
   transition: opacity 0.2s;
 }
 
-.sastojci-popis li::before {
+.ingredients-list li::before {
   content: "○ ";
-  color: var(--naglasak);
+  color: var(--accent);
 }
 
-.sastojci-popis li.oznaceno {
+.ingredients-list li.checked {
   opacity: 0.45;
   text-decoration: line-through;
 }
 
-.sastojci-popis li.oznaceno::before {
+.ingredients-list li.checked::before {
   content: "● ";
 }
 
-.kolicina {
+.quantity {
   font-weight: 700;
-  color: var(--naglasak);
+  color: var(--accent);
 }
 
-.postupak {
+.steps {
   counter-reset: korak;
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.postupak li {
+.steps li {
   counter-increment: korak;
   position: relative;
   padding: 0.9rem 0.75rem 0.9rem 3.25rem;
@@ -883,11 +1021,11 @@ textarea:focus {
   transition: background-color 0.2s, opacity 0.2s;
 }
 
-.postupak li:hover {
-  background: var(--povrsina-2);
+.steps li:hover {
+  background: var(--surface-2);
 }
 
-.postupak li::before {
+.steps li::before {
   content: counter(korak);
   position: absolute;
   left: 0.6rem;
@@ -895,7 +1033,7 @@ textarea:focus {
   width: 1.9rem;
   height: 1.9rem;
   border-radius: 50%;
-  background: var(--naglasak);
+  background: var(--accent);
   color: #fff;
   display: grid;
   place-items: center;
@@ -903,95 +1041,95 @@ textarea:focus {
   font-size: 0.9rem;
 }
 
-.postupak li.gotovo {
+.steps li.done {
   opacity: 0.5;
 }
 
-.postupak li.gotovo::before {
+.steps li.done::before {
   content: "✓";
-  background: var(--zelena);
+  background: var(--green);
 }
 
-.napredak {
+.progress {
   height: 8px;
-  background: var(--povrsina-2);
+  background: var(--surface-2);
   border-radius: 999px;
   margin-top: 1rem;
   overflow: hidden;
 }
 
-.napredak-traka {
+.progress-bar {
   height: 100%;
   width: 0;
-  background: var(--zelena);
+  background: var(--green);
   transition: width 0.4s ease;
 }
 
-.savjet {
+.tip {
   font-size: 0.88rem;
-  color: var(--tekst-blagi);
+  color: var(--text-muted);
   margin: 0.75rem 0 0;
 }
 
 /* ---------- Planer ---------- */
-.planer-forma {
+.planner-form {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: end;
   padding: 1.25rem;
-  background: var(--povrsina);
-  border-radius: var(--radijus);
-  box-shadow: var(--sjena);
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
   margin-bottom: 2rem;
 }
 
-.planer-forma > div {
+.planner-form > div {
   flex: 1 1 200px;
 }
 
-.planer-forma label {
+.planner-form label {
   display: block;
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--tekst-blagi);
+  color: var(--text-muted);
   margin-bottom: 0.25rem;
 }
 
-.planer-raspored {
+.planner-layout {
   display: grid;
   grid-template-columns: 1fr 320px;
   gap: 2rem;
   align-items: start;
 }
 
-.tjedan {
+.week {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 1rem;
 }
 
-.dan {
-  background: var(--povrsina);
-  border-radius: var(--radijus);
+.day {
+  background: var(--surface);
+  border-radius: var(--radius);
   padding: 1rem;
-  box-shadow: var(--sjena);
+  box-shadow: var(--shadow);
   min-height: 120px;
 }
 
-.dan h3 {
+.day h3 {
   font-size: 1.05rem;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--naglasak-svijetli);
+  border-bottom: 2px solid var(--accent-light);
 }
 
-.dan ul {
+.day ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.dan li {
+.day li {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1000,19 +1138,19 @@ textarea:focus {
   font-size: 0.92rem;
 }
 
-.dan li a {
-  color: var(--tekst);
+.day li a {
+  color: var(--text);
   text-decoration: none;
 }
 
-.dan li a:hover {
-  color: var(--naglasak);
+.day li a:hover {
+  color: var(--accent);
 }
 
-.ukloni {
+.remove {
   flex-shrink: 0;
   border: none;
-  background: var(--povrsina-2);
+  background: var(--surface-2);
   width: 1.6rem;
   height: 1.6rem;
   border-radius: 50%;
@@ -1020,28 +1158,28 @@ textarea:focus {
   font-size: 0.75rem;
 }
 
-.ukloni:hover {
-  background: var(--naglasak);
+.remove:hover {
+  background: var(--accent);
   color: #fff;
 }
 
-.dan-prazno {
-  color: var(--tekst-blagi);
+.day-empty {
+  color: var(--text-muted);
   font-size: 0.88rem;
   font-style: italic;
   margin: 0;
 }
 
-.kupnja {
+.shopping {
   position: sticky;
   top: 5.5rem;
 }
 
-.kupnja h2 {
+.shopping h2 {
   font-size: 1.4rem;
 }
 
-.popis-kupnje {
+.shopping-list {
   list-style: none;
   padding: 0;
   margin: 0 0 1rem;
@@ -1049,55 +1187,55 @@ textarea:focus {
   overflow-y: auto;
 }
 
-.popis-kupnje li {
+.shopping-list li {
   padding: 0.35rem 0;
-  border-bottom: 1px dashed var(--rub);
+  border-bottom: 1px dashed var(--border);
 }
 
-.popis-kupnje label {
+.shopping-list label {
   display: flex;
   gap: 0.6rem;
   align-items: baseline;
   cursor: pointer;
 }
 
-.popis-kupnje input {
-  accent-color: var(--zelena);
+.shopping-list input {
+  accent-color: var(--green);
 }
 
-.popis-kupnje li.kupljeno span {
+.shopping-list li.purchased span {
   text-decoration: line-through;
   opacity: 0.5;
 }
 
 /* ---------- Kontakt ---------- */
-.kontakt-raspored {
+.contact-layout {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
   gap: 2rem;
   align-items: start;
 }
 
-.polje {
+.field {
   margin-bottom: 1.1rem;
 }
 
-.polje > label {
+.field > label {
   display: block;
   font-weight: 600;
   margin-bottom: 0.3rem;
 }
 
-.polje textarea {
+.field textarea {
   resize: vertical;
   min-height: 140px;
 }
 
-.neispravno {
+.invalid {
   border-color: #d03b3b !important;
 }
 
-.greska {
+.error {
   display: block;
   color: #d03b3b;
   font-size: 0.85rem;
@@ -1105,56 +1243,57 @@ textarea:focus {
   margin-top: 0.2rem;
 }
 
-[data-tema="tamna"] .greska {
+[data-theme="dark"] .error {
   color: #ff8a80;
 }
 
-.broj-znakova {
+.char-count {
   display: block;
   text-align: right;
   font-size: 0.8rem;
-  color: var(--tekst-blagi);
+  color: var(--text-muted);
 }
 
-.broj-znakova.upozorenje {
-  color: var(--naglasak);
+.char-count.warning {
+  color: var(--accent);
   font-weight: 700;
 }
 
-.uspjeh {
+.success {
   text-align: center;
   padding: 2rem 1rem;
   animation: pojavi 0.4s ease;
 }
 
-.uspjeh-emoji {
+.success-emoji {
   font-size: 4rem;
   margin: 0;
 }
 
-.info-stavka {
+.info-item {
   display: flex;
+  align-items: center;
   gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
-.info-stavka span:first-child {
+.info-item span:first-child {
   font-size: 1.4rem;
 }
 
-.info-stavka p {
+.info-item p {
   margin: 0;
 }
 
-.pitanja {
+.questions {
   margin-top: 1.5rem;
 }
 
-.pitanje {
-  border-bottom: 1px solid var(--rub);
+.question {
+  border-bottom: 1px solid var(--border);
 }
 
-.pitanje-gumb {
+.question-btn {
   width: 100%;
   text-align: left;
   padding: 0.9rem 0;
@@ -1167,54 +1306,55 @@ textarea:focus {
   gap: 1rem;
 }
 
-.pitanje-gumb::after {
+.question-btn::after {
   content: "+";
   font-size: 1.3rem;
   line-height: 1;
-  color: var(--naglasak);
+  color: var(--accent);
   transition: transform 0.2s;
 }
 
-.pitanje-gumb[aria-expanded="true"]::after {
+.question-btn[aria-expanded="true"]::after {
   transform: rotate(45deg);
 }
 
-.odgovor {
+.answer {
   padding-bottom: 1rem;
-  color: var(--tekst-blagi);
+  color: var(--text-muted);
 }
 
-.odgovor p {
+.answer p {
   margin: 0;
 }
 
 /* ---------- Podnožje ---------- */
-.podnozje {
+.footer {
   margin-top: 3rem;
   padding: 2rem 0 5.5rem;
-  border-top: 1px solid var(--rub);
-  color: var(--tekst-blagi);
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
-.podnozje-sadrzaj {
+.footer-content {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
   gap: 1rem;
 }
 
-.podnozje nav {
+.footer nav {
   display: flex;
   gap: 1rem;
 }
 
-.podnozje a {
-  color: var(--tekst-blagi);
+.footer a {
+  color: var(--text-muted);
 }
 
 /* ---------- Obavijesti (toast) ---------- */
-.obavijesti {
+.toasts {
   position: fixed;
   left: 50%;
   bottom: 1.5rem;
@@ -1227,18 +1367,18 @@ textarea:focus {
   pointer-events: none;
 }
 
-.obavijest {
-  background: var(--tekst);
-  color: var(--pozadina);
+.toast {
+  background: var(--text);
+  color: var(--background);
   padding: 0.7rem 1.3rem;
   border-radius: 999px;
   font-weight: 600;
-  box-shadow: var(--sjena);
+  box-shadow: var(--shadow);
   animation: pojavi 0.3s ease;
   transition: opacity 0.4s, transform 0.4s;
 }
 
-.obavijest.nestaje {
+.toast.fade-out {
   opacity: 0;
   transform: translateY(10px);
 }
@@ -1246,7 +1386,7 @@ textarea:focus {
 /* =========================================================
    CHATBOT
    ========================================================= */
-.chat-gumb {
+.chat-btn {
   position: fixed;
   right: 1.5rem;
   bottom: 1.5rem;
@@ -1255,7 +1395,7 @@ textarea:focus {
   height: 3.8rem;
   border-radius: 50%;
   border: none;
-  background: var(--naglasak);
+  background: var(--accent);
   color: #fff;
   font-size: 1.7rem;
   cursor: pointer;
@@ -1263,20 +1403,20 @@ textarea:focus {
   transition: transform 0.2s;
 }
 
-.chat-gumb:hover {
+.chat-btn:hover {
   transform: scale(1.08);
 }
 
-.chat-gumb.otvoren .chat-gumb-ikona {
+.chat-btn.open .chat-btn-icon {
   display: none;
 }
 
-.chat-gumb.otvoren::after {
+.chat-btn.open::after {
   content: "✕";
   font-size: 1.3rem;
 }
 
-.chat-prozor {
+.chat-window {
   position: fixed;
   right: 1.5rem;
   bottom: 6.2rem;
@@ -1285,12 +1425,12 @@ textarea:focus {
   height: min(560px, calc(100vh - 8rem));
   display: flex;
   flex-direction: column;
-  background: var(--povrsina);
+  background: var(--surface);
   border-radius: 20px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.22);
   overflow: hidden;
   animation: otvoriChat 0.25s ease;
-  border: 1px solid var(--rub);
+  border: 1px solid var(--border);
 }
 
 @keyframes otvoriChat {
@@ -1300,12 +1440,12 @@ textarea:focus {
   }
 }
 
-.chat-zaglavlje {
+.chat-header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.85rem 1rem;
-  background: var(--naglasak);
+  background: var(--accent);
   color: #fff;
 }
 
@@ -1319,18 +1459,18 @@ textarea:focus {
   font-size: 1.4rem;
 }
 
-.chat-naslov {
+.chat-title {
   flex: 1;
   display: flex;
   flex-direction: column;
   line-height: 1.25;
 }
 
-.chat-naslov small {
+.chat-title small {
   opacity: 0.85;
 }
 
-.chat-akcija {
+.chat-action {
   background: rgba(255, 255, 255, 0.18);
   border: none;
   color: #fff;
@@ -1340,21 +1480,21 @@ textarea:focus {
   cursor: pointer;
 }
 
-.chat-akcija:hover {
+.chat-action:hover {
   background: rgba(255, 255, 255, 0.32);
 }
 
-.chat-poruke {
+.chat-messages {
   flex: 1;
   overflow-y: auto;
   padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  background: var(--pozadina);
+  background: var(--background);
 }
 
-.chat-poruka {
+.chat-message {
   max-width: 88%;
   padding: 0.65rem 0.9rem;
   border-radius: 16px;
@@ -1364,45 +1504,45 @@ textarea:focus {
   overflow-wrap: anywhere;
 }
 
-.chat-poruka.bot {
+.chat-message.bot {
   align-self: flex-start;
-  background: var(--povrsina);
-  border: 1px solid var(--rub);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-bottom-left-radius: 4px;
 }
 
-.chat-poruka.korisnik {
+.chat-message.user {
   align-self: flex-end;
-  background: var(--naglasak);
+  background: var(--accent);
   color: #fff;
   border-bottom-right-radius: 4px;
 }
 
-[data-tema="tamna"] .chat-poruka.korisnik {
+[data-theme="dark"] .chat-message.user {
   color: #1c1917;
 }
 
-.chat-poruka ul,
-.chat-poruka ol {
+.chat-message ul,
+.chat-message ol {
   margin: 0.4rem 0;
   padding-left: 1.2rem;
 }
 
-.chat-poruka li {
+.chat-message li {
   margin-bottom: 0.25rem;
 }
 
-.chat-recepti {
+.chat-recipes {
   list-style: none;
   padding-left: 0 !important;
 }
 
-.chat-recepti li {
+.chat-recipes li {
   display: flex;
   gap: 0.6rem;
   align-items: center;
   padding: 0.4rem 0.6rem;
-  background: var(--povrsina-2);
+  background: var(--surface-2);
   border-radius: 10px;
 }
 
@@ -1415,36 +1555,36 @@ textarea:focus {
   display: grid;
   place-items: center;
   font-size: 1.6rem;
-  background: var(--povrsina);
+  background: var(--surface);
 }
 
-.chat-poruka a {
+.chat-message a {
   font-weight: 600;
 }
 
-.chat-poruka small {
-  color: var(--tekst-blagi);
+.chat-message small {
+  color: var(--text-muted);
 }
 
-.pise {
+.typing {
   display: flex;
   gap: 4px;
   padding: 0.85rem 1rem;
 }
 
-.pise span {
+.typing span {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--tekst-blagi);
+  background: var(--text-muted);
   animation: tocka 1s infinite;
 }
 
-.pise span:nth-child(2) {
+.typing span:nth-child(2) {
   animation-delay: 0.15s;
 }
 
-.pise span:nth-child(3) {
+.typing span:nth-child(3) {
   animation-delay: 0.3s;
 }
 
@@ -1455,57 +1595,58 @@ textarea:focus {
   }
 }
 
-.chat-cipovi {
+.chat-chips {
   display: flex;
-  gap: 0.4rem;
+  flex-wrap: wrap;
+  gap: 0.3rem;
   padding: 0 0.75rem;
-  overflow-x: auto;
-  background: var(--pozadina);
+  background: var(--background);
 }
 
-.chat-cipovi:not(:empty) {
+.chat-chips:not(:empty) {
   padding-bottom: 0.6rem;
 }
 
-.cip {
+.chip {
   flex-shrink: 0;
-  padding: 0.35rem 0.8rem;
+  padding: 0.25rem 0.65rem;
   border-radius: 999px;
-  border: 1px solid var(--naglasak);
-  background: var(--povrsina);
-  color: var(--naglasak);
-  font-size: 0.82rem;
+  border: 1px solid var(--accent);
+  background: var(--surface);
+  color: var(--accent);
+  font-size: 0.75rem;
   font-weight: 600;
+  line-height: 1.4;
   cursor: pointer;
   white-space: nowrap;
 }
 
-.cip:hover {
-  background: var(--naglasak);
+.chip:hover {
+  background: var(--accent);
   color: #fff;
 }
 
-.chat-forma {
+.chat-form {
   display: flex;
   gap: 0.5rem;
   padding: 0.75rem;
-  border-top: 1px solid var(--rub);
-  background: var(--povrsina);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
 }
 
-.chat-forma input {
+.chat-form input {
   flex: 1;
   border-radius: 999px;
   padding: 0.6rem 1rem;
 }
 
-.chat-forma button {
+.chat-form button {
   width: 2.6rem;
   height: 2.6rem;
   flex-shrink: 0;
   border-radius: 50%;
   border: none;
-  background: var(--naglasak);
+  background: var(--accent);
   color: #fff;
   cursor: pointer;
 }
@@ -1514,56 +1655,56 @@ textarea:focus {
    PRILAGODBA ZA MOBITELE I TABLETE
    ========================================================= */
 @media (max-width: 960px) {
-  .kategorije {
+  .categories {
     grid-template-columns: repeat(3, 1fr);
   }
 
-  .filteri {
+  .filters {
     grid-template-columns: 1fr 1fr;
   }
 
-  .filteri > div:first-child {
+  .filters > div:first-child {
     grid-column: 1 / -1;
   }
 
-  .recept-tijelo,
-  .planer-raspored,
-  .kontakt-raspored {
+  .recipe-body,
+  .planner-layout,
+  .contact-layout {
     grid-template-columns: 1fr;
   }
 
-  .kupnja {
+  .shopping {
     position: static;
   }
 }
 
 @media (max-width: 760px) {
-  .izbornik-gumb {
+  .menu-btn {
     display: inline-grid;
   }
 
-  .navigacija {
+  .navigation {
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
     flex-direction: column;
     padding: 0.75rem 1.25rem 1.25rem;
-    background: var(--pozadina);
-    border-bottom: 1px solid var(--rub);
-    box-shadow: var(--sjena);
+    background: var(--background);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow);
     display: none;
   }
 
-  .navigacija.otvoren {
+  .navigation.open {
     display: flex;
   }
 
-  .navigacija a {
+  .navigation a {
     padding: 0.8rem 1rem;
   }
 
-  .zaglavlje-akcije {
+  .header-actions {
     margin-left: auto;
   }
 
@@ -1571,73 +1712,81 @@ textarea:focus {
     padding-top: 2.5rem;
   }
 
-  .hero-sadrzaj {
+  .hero-content {
     grid-template-columns: 1fr;
   }
 
-  .hero-ilustracija {
+  .hero-illustration {
     display: none;
   }
 
-  .istaknuto {
+  .featured {
     grid-template-columns: 1fr;
   }
 
-  .istaknuto-slika {
+  .featured-image {
     min-height: 170px;
     font-size: 5rem;
   }
 
-  .istaknuto-tekst {
+  .featured-text {
     padding: 1.5rem;
   }
 
-  .recept-zaglavlje {
+  .recipe-header {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
 
-  .recept-emoji {
+  .recipe-emoji {
     aspect-ratio: auto;
     height: 240px;
     font-size: 6rem;
   }
 
-  .sekcija {
+  .section {
     padding: 2.5rem 0;
   }
 
-  .chat-poziv {
+  .section-no-top {
+    padding-top: 0;
+  }
+
+  .chat-cta {
     padding: 1.5rem;
   }
 }
 
 @media (max-width: 520px) {
-  .kategorije {
+  .categories {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .filteri {
+  .filters {
     grid-template-columns: 1fr;
   }
 
-  .filteri-red .gumb {
+  .filters-row .btn {
     margin-left: 0;
   }
 
-  .hero-pretraga {
+  .hero-search {
     flex-direction: column;
   }
 
-  .dodaj-planer {
+  .hero-search input {
+    flex: none;
+  }
+
+  .add-to-planner {
     width: 100%;
   }
 
-  .dodaj-planer select {
+  .add-to-planner select {
     flex: 1;
   }
 
-  .chat-prozor {
+  .chat-window {
     right: 0;
     left: 0;
     bottom: 0;
@@ -1647,7 +1796,7 @@ textarea:focus {
     z-index: 150;
   }
 
-  .chat-gumb.otvoren {
+  .chat-btn.open {
     display: none;
   }
 }

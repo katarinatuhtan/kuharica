@@ -5,110 +5,110 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Domaći recepti, planer obroka i chatbot koji predlaže što skuhati.">
   <title>Kuharica – recepti za svaki dan</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍲</text></svg>">
+  <link rel="icon" type="image/png" href="images/icons/pot.png">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body data-stranica="pocetna">
-  <header class="zaglavlje">
-    <div class="omotac zaglavlje-sadrzaj">
-      <a href="index.html" class="logo"><span class="logo-ikona">🍲</span><span class="logo-tekst">Kuharica</span></a>
-      <nav class="navigacija" id="navigacija" aria-label="Glavna navigacija">
-        <a href="index.html" class="aktivno" aria-current="page">Početna</a>
-        <a href="recepti.html">Recepti</a>
-        <a href="planer.html">Planer obroka</a>
-        <a href="kontakt.html">Kontakt</a>
+<body data-page="home">
+  <header class="header">
+    <div class="wrapper header-content">
+      <a href="index.html" class="logo"><span class="logo-icon"><img class="icon" src="images/icons/pot.png" alt=""></span><span class="logo-text">Kuharica</span></a>
+      <nav class="navigation" id="navigation" aria-label="Glavna navigacija">
+        <a href="index.html" class="active" aria-current="page">Početna</a>
+        <a href="recipes.html">Recepti</a>
+        <a href="planner.html">Planer obroka</a>
+        <a href="contact.html">Kontakt</a>
       </nav>
-      <div class="zaglavlje-akcije">
-        <button class="gumb-ikona" id="tema-gumb" aria-label="Promijeni temu">🌙</button>
-        <button class="gumb-ikona izbornik-gumb" id="izbornik-gumb" aria-label="Izbornik" aria-expanded="false" aria-controls="navigacija">☰</button>
+      <div class="header-actions">
+        <button class="btn-icon" id="theme-toggle" aria-label="Promijeni temu"><img class="icon" src="images/icons/moon.png" alt=""></button>
+        <button class="btn-icon menu-btn" id="menu-toggle" aria-label="Izbornik" aria-expanded="false" aria-controls="navigation">☰</button>
       </div>
     </div>
   </header>
 
   <main>
     <section class="hero">
-      <div class="omotac hero-sadrzaj">
+      <div class="wrapper hero-content">
         <div>
           <h1>Što ćemo danas kuhati?</h1>
           <p>Jednostavni i provjereni recepti za svaki dan: od brzih ručkova do slatkih deserata. Isplaniraj tjedan i dobij popis za kupnju u jednom kliku.</p>
-          <form class="hero-pretraga" action="recepti.html" method="get" role="search">
-            <label for="hero-trazi" class="vizualno-skriveno">Pretraži recepte</label>
-            <input type="search" id="hero-trazi" name="trazi" placeholder="Upiši jelo ili sastojak…">
-            <button type="submit" class="gumb gumb-primarni">Pretraži</button>
+          <form class="hero-search" action="recipes.html" method="get" role="search">
+            <label for="hero-search-input" class="visually-hidden">Pretraži recepte</label>
+            <input type="search" id="hero-search-input" name="q" placeholder="Upiši jelo ili sastojak…">
+            <button type="submit" class="btn btn-primary">Pretraži</button>
           </form>
-          <div class="hero-oznake">
-            <a href="recepti.html?trazi=piletina">🍗 Piletina</a>
-            <a href="recepti.html?trazi=jaja">🥚 Jaja</a>
-            <a href="recepti.html?trazi=rajčica">🍅 Rajčica</a>
-            <a href="recepti.html?kategorija=desert">🍰 Deserti</a>
+          <div class="hero-tags">
+            <a href="recipes.html?q=piletina"><img class="icon" src="images/icons/drumstick.png" alt=""> Piletina</a>
+            <a href="recipes.html?q=jaja"><img class="icon" src="images/icons/egg.png" alt=""> Jaja</a>
+            <a href="recipes.html?q=rajčica"><img class="icon" src="images/icons/tomato.png" alt=""> Rajčica</a>
+            <a href="recipes.html?category=dessert"><img class="icon" src="images/icons/cake.png" alt=""> Deserti</a>
           </div>
         </div>
-        <div class="hero-ilustracija" aria-hidden="true"><span>🥘</span><span>🥗</span><span>🍰</span></div>
+        <div class="hero-illustration" aria-hidden="true"><span><img class="icon" src="images/icons/paella.png" alt=""></span><span><img class="icon" src="images/icons/salad.png" alt=""></span><span><img class="icon" src="images/icons/cake.png" alt=""></span></div>
       </div>
     </section>
 
-    <section class="sekcija">
-      <div class="omotac">
-        <div class="sekcija-zaglavlje">
+    <section class="section">
+      <div class="wrapper">
+        <div class="section-header">
           <div>
             <h2>Recept dana</h2>
-            <p class="podnaslov">Ne znaš što bi? Prepusti odluku nama.</p>
+            <p class="subtitle">Ne znaš što bi? Prepusti odluku nama.</p>
           </div>
-          <button class="gumb" id="novi-prijedlog">🎲 Drugi prijedlog</button>
+          <button class="btn" id="new-suggestion"><img class="icon" src="images/icons/dice.png" alt=""> Drugi prijedlog</button>
         </div>
-        <article class="istaknuto" id="recept-dana" aria-live="polite"></article>
+        <article class="featured" id="recipe-of-the-day" aria-live="polite"></article>
       </div>
     </section>
 
-    <section class="sekcija" style="padding-top:0">
-      <div class="omotac">
-        <div class="sekcija-zaglavlje"><h2>Kategorije</h2></div>
-        <div class="kategorije" id="kategorije"></div>
+    <section class="section section-no-top">
+      <div class="wrapper">
+        <div class="section-header"><h2>Kategorije</h2></div>
+        <div class="categories" id="categories"></div>
       </div>
     </section>
 
-    <section class="sekcija" style="padding-top:0">
-      <div class="omotac">
-        <div class="sekcija-zaglavlje">
+    <section class="section section-no-top">
+      <div class="wrapper">
+        <div class="section-header">
           <div>
             <h2>Gotovo za čas</h2>
-            <p class="podnaslov">Naši najbrži recepti. Prijeđi mišem preko kartice za kalorije.</p>
+            <p class="subtitle">Naši najbrži recepti. Prijeđi mišem preko kartice za kalorije.</p>
           </div>
-          <a href="recepti.html" class="gumb">Svi recepti →</a>
+          <a href="recipes.html" class="btn">Svi recepti →</a>
         </div>
-        <div class="mreza" id="najbrzi"></div>
+        <div class="grid" id="fastest"></div>
       </div>
     </section>
 
-    <section class="sekcija" id="favoriti-sekcija" style="padding-top:0" hidden>
-      <div class="omotac">
-        <div class="sekcija-zaglavlje"><h2>❤️ Tvoji favoriti</h2></div>
-        <div class="mreza" id="favoriti-mreza"></div>
+    <section class="section section-no-top" id="favorites-section" hidden>
+      <div class="wrapper">
+        <div class="section-header"><h2><img class="icon" src="images/icons/heart.png" alt=""> Tvoji favoriti</h2></div>
+        <div class="grid" id="favorites-grid"></div>
       </div>
     </section>
 
-    <section class="sekcija" style="padding-top:0">
-      <div class="omotac">
-        <div class="chat-poziv">
+    <section class="section section-no-top">
+      <div class="wrapper">
+        <div class="chat-cta">
           <div>
             <h2>Imaš sastojke, a nemaš ideju?</h2>
             <p>Reci Kuhar Botu što imaš u hladnjaku i on će ti predložiti recept.</p>
           </div>
-          <button class="gumb otvori-chat">💬 Pitaj Kuhar Bota</button>
+          <button class="btn open-chat"><img class="icon" src="images/icons/speech-bubble.png" alt=""> Pitaj Kuhar Bota</button>
         </div>
       </div>
     </section>
 
   </main>
 
-  <footer class="podnozje">
-    <div class="omotac podnozje-sadrzaj">
+  <footer class="footer">
+    <div class="wrapper footer-content">
       <p>© 2026 Kuharica · Projekt iz kolegija Tehnologije interaktivnog weba</p>
-      <nav aria-label="Navigacija u podnožju"><a href="index.html">Početna</a> <a href="recepti.html">Recepti</a> <a href="planer.html">Planer obroka</a> <a href="kontakt.html">Kontakt</a></nav>
+      <nav aria-label="Navigacija u podnožju"><a href="index.html">Početna</a> <a href="recipes.html">Recepti</a> <a href="planner.html">Planer obroka</a> <a href="contact.html">Kontakt</a></nav>
     </div>
   </footer>
 
-  <script src="js/podaci.js"></script>
+  <script src="js/data.js"></script>
   <script src="js/main.js"></script>
   <script src="js/chatbot.js"></script>
 </body>
