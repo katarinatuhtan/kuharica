@@ -36,11 +36,15 @@
       <form class="planner-form" id="planner-form">
         <div>
           <label for="planner-recipe">Recept</label>
-          <select id="planner-recipe"></select>
+          <select id="planner-recipe">
+            <option value="" disabled selected>Odaberi obrok…</option>
+          </select>
         </div>
         <div>
           <label for="planner-day">Dan</label>
-          <select id="planner-day"></select>
+          <select id="planner-day">
+            <option value="" disabled selected>Odaberi dan…</option>
+          </select>
         </div>
         <button type="submit" class="btn btn-primary">+ Dodaj u plan</button>
       </form>
@@ -50,6 +54,7 @@
 
         <aside class="block shopping">
           <h2><img class="icon" src="images/icons/cart.png" alt=""> Popis za kupnju</h2>
+          <div class="shopping-days" id="shopping-days" role="group" aria-label="Dani za popis za kupnju"></div>
           <p class="tip" id="shopping-count"></p>
           <ul class="shopping-list" id="shopping-list"></ul>
           <button class="btn" id="clear-planner" type="button"><img class="icon" src="images/icons/trash.png" alt=""> Očisti planer</button>

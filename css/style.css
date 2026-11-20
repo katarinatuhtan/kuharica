@@ -1208,6 +1208,57 @@ textarea:focus {
   opacity: 0.5;
 }
 
+.shopping-days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.shopping-days .filter-tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.shopping-days .filter-tag:hover {
+  border-color: var(--accent);
+}
+
+.shopping-days .filter-tag:has(input:checked) {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.shopping-list .shopping-recipe {
+  margin-top: 0.9rem;
+  padding: 0 0 0.25rem;
+  border-bottom: 2px solid var(--accent-light);
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.shopping-list .shopping-recipe:first-child {
+  margin-top: 0;
+}
+
+.shopping-list .shopping-recipe small {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
 /* ---------- Kontakt ---------- */
 .contact-layout {
   display: grid;
