@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Tvoji spremljeni recepti.">
+  <title>Moji favoriti | Kuharica</title>
+  <link rel="icon" type="image/png" href="images/icons/pot.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="favorites">
+  <header class="header">
+    <div class="wrapper header-content">
+      <a href="index.html" class="logo"><span class="logo-icon"><img class="icon" src="images/icons/pot.png" alt=""></span><span class="logo-text">Kuharica</span></a>
+      <nav class="navigation" id="navigation" aria-label="Glavna navigacija">
+        <a href="index.html">Početna</a>
+        <a href="recipes.html">Recepti</a>
+        <a href="planner.html">Planer obroka</a>
+        <a href="favorites.html" class="active" aria-current="page">Moji favoriti</a>
+        <a href="contact.html">Kontakt</a>
+      </nav>
+      <div class="header-actions">
+        <button class="btn-icon" id="theme-toggle" aria-label="Promijeni temu"><img class="icon" src="images/icons/moon.png" alt=""></button>
+        <button class="btn-icon menu-btn" id="menu-toggle" aria-label="Izbornik" aria-expanded="false" aria-controls="navigation">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrapper">
+      <div class="page-title">
+        <h1>Moji favoriti</h1>
+        <p class="subtitle">Recepti spremljeni klikom na srce. Ponovni klik na srce uklanja recept s popisa.</p>
+      </div>
+
+      <p class="counter" id="favorites-count" aria-live="polite"></p>
+      <div class="grid" id="favorites-list"></div>
+
+      <div class="empty" id="favorites-empty" hidden>
+        <p class="empty-emoji"><img class="icon" src="images/icons/heart.png" alt=""></p>
+        <h2>Još nemaš omiljenih recepata</h2>
+        <p>Klikni srce na bilo kojem receptu i on će se pojaviti ovdje.</p>
+        <a href="recipes.html" class="btn btn-primary">Pregledaj recepte</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrapper footer-content">
+      <p>© 2026 Kuharica · Projekt iz kolegija Tehnologije interaktivnog weba</p>
+      <nav aria-label="Navigacija u podnožju"><a href="index.html">Početna</a> <a href="recipes.html">Recepti</a> <a href="planner.html">Planer obroka</a> <a href="favorites.html">Moji favoriti</a> <a href="contact.html">Kontakt</a></nav>
+    </div>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/chatbot.js"></script>
+</body>
+</html>
