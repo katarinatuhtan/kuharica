@@ -1702,6 +1702,22 @@ textarea:focus {
   cursor: pointer;
 }
 
+/* napomena uz recepte iz vanjske baze (TheMealDB) */
+.chat-external-note {
+  margin: 0.4rem 0;
+  padding: 0.4rem 0.6rem;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-light);
+  border-radius: 6px;
+  font-size: 0.82rem;
+}
+
+.chat-external-note .icon {
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: -0.2em;
+}
+
 /* =========================================================
    PRILAGODBA ZA MOBITELE I TABLETE
    ========================================================= */
