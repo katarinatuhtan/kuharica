@@ -616,7 +616,7 @@ function initPlanner() {
 
     updateShoppingCount();
   }
-  
+
   function updateShoppingCount() {
     const total = shoppingList.querySelectorAll("input").length;
     const purchased = shoppingList.querySelectorAll("input:checked").length;
@@ -662,7 +662,7 @@ function initPlanner() {
 }
 
 /* =========================================================
-   KONTAKT – provjera obrasca i česta pitanja
+   KONTAKT – provjera obrasca, slanje preko Formspreeja i česta pitanja
    ========================================================= */
 function initContact() {
   const form = document.getElementById("contact-form");
@@ -675,6 +675,7 @@ function initContact() {
   const charCount = document.getElementById("char-count");
   const consent = document.getElementById("consent");
   const success = document.getElementById("success");
+  const sendButton = document.getElementById("send-btn");
 
   // dodatno polje prikazuje se samo kad korisnik šalje recept
   topic.addEventListener("change", () => {
@@ -701,7 +702,7 @@ function initContact() {
     field.addEventListener("change", () => setError(field, ""));
   });
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     let isValid = true;
     const fail = (field, text) => {
@@ -709,6 +710,7 @@ function initContact() {
       isValid = false;
     };
 
+    // provjera polja prije slanja
     if (name.value.trim().length < 2) fail(name, "Upiši ime (najmanje 2 znaka).");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim())) fail(email, "Upiši ispravnu e-mail adresu.");
     if (!topic.value) fail(topic, "Odaberi temu poruke.");
@@ -721,12 +723,41 @@ function initContact() {
       return;
     }
 
-    document.getElementById("success-name").textContent = name.value.trim();
-    form.reset();
-    recipeField.hidden = true;
-    charCount.textContent = "0 / 500";
-    form.hidden = true;
-    success.hidden = false;
+    // podaci iz obrasca (šalju se polja s atributom name)
+    const topicText = topic.options[topic.selectedIndex].text;
+    const data = new FormData(form);
+    data.set("topic", topicText); // šalje se tekst teme, a ne "question"
+    if (recipeField.hidden) data.delete("recipe");
+    data.append("_subject", `Kuharica – nova poruka: ${topicText}`); // naslov e-maila
+
+    // gumb je onemogućen dok traje slanje
+    sendButton.disabled = true;
+    sendButton.textContent = "Šaljem…";
+
+    try {
+      // slanje na Formspree preko Fetch API-ja
+      const response = await fetch(form.action, {
+        method: "POST",
+        body: data,
+        headers: { Accept: "application/json" }
+      });
+      if (!response.ok) throw new Error("Slanje nije uspjelo");
+
+      // uspjeh – prikaz poruke zahvale
+      document.getElementById("success-name").textContent = name.value.trim();
+      form.reset();
+      recipeField.hidden = true;
+      charCount.textContent = "0 / 500";
+      charCount.classList.remove("warning");
+      form.hidden = true;
+      success.hidden = false;
+    } catch (err) {
+      // neuspjeh – upisani podaci ostaju u obrascu
+      showToast("Poruka nije poslana. Provjeri internetsku vezu i pokušaj ponovno.");
+    } finally {
+      sendButton.disabled = false;
+      sendButton.textContent = "Pošalji poruku";
+    }
   });
 
   document.getElementById("new-message").addEventListener("click", () => {
