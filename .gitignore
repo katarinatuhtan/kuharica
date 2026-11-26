@@ -1,0 +1,21 @@
+# macOS sistemske datoteke
+.DS_Store
+._*
+
+# Windows sistemske datoteke
+Thumbs.db
+desktop.ini
+
+# Postavke uređivača (WebStorm / IntelliJ, VS Code)
+.idea/
+.vscode/
+*.iml
+
+# Lokalne postavke Claude Codea
+.claude/
+
+# Privremene datoteke i zapisi
+*.log
+*.tmp
+*.swp
+*~
